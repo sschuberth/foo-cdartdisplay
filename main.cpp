@@ -303,39 +303,36 @@ LRESULT CALLBACK CDArtDisplayInterface::WindowProc(HWND hWnd,UINT uMsg,WPARAM wP
                 if (pbc->get_now_playing(track)) {
                     file_info_impl info;
                     if (track->get_info(info)) {
-                        char const* title=info.meta_get("TITLE",0);
-                        char const* artist=info.meta_get("ARTIST",0);
-                        char const* album=info.meta_get("ALBUM",0);
-                        char const* genre=info.meta_get("GENRE",0);
-                        char const* year=info.meta_get("DATE",0);
-                        char const* comment=info.meta_get("COMMENT",0);
-
                         // TODO: Think about making this an option in the GUI.
                         int number=atoi(info.meta_get("TRACKNUMBER",0));
 
                         int length=static_cast<int>(pbc->playback_get_length());
                         char const* path=track->get_path()+sizeof("file://")-1;
-                        char const* rating=get_rating(info);
 
                         // TODO: Think about making this an option in the GUI.
                         char const* cover="";
-
-                        char const* composer=info.meta_get("COMPOSER",0);
-                        char const* lyricist=info.meta_get("LYRICIST",0);
-                        char const* publisher=info.meta_get("PUBLISHER",0);
-                        char const* conductor=info.meta_get("CONDUCTOR",0);
-                        char const* producer=info.meta_get("PRODUCER",0);
-                        char const* copyright=info.meta_get("COPYRIGHT",0);
 
                         _snprintf_s(
                             buffer,
                             _TRUNCATE,
                             "%s\t%s\t%s\t%s\t%s\t%s\t%d\t%d\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s",
-                            title,artist,album,genre,year,comment,
+                            info.meta_get("TITLE",0),
+                            info.meta_get("ARTIST",0),
+                            info.meta_get("ALBUM",0),
+                            info.meta_get("GENRE",0),
+                            info.meta_get("DATE",0),
+                            info.meta_get("COMMENT",0),
                             number,
-                            length,path,rating,
+                            length,
+                            path,
+                            get_rating(info),
                             cover,
-                            composer,lyricist,publisher,conductor,producer,copyright
+                            info.meta_get("COMPOSER",0),
+                            info.meta_get("LYRICIST",0),
+                            info.meta_get("PUBLISHER",0),
+                            info.meta_get("CONDUCTOR",0),
+                            info.meta_get("PRODUCER",0),
+                            info.meta_get("COPYRIGHT",0)
                         );
                     }
                 }
@@ -379,7 +376,25 @@ LRESULT CALLBACK CDArtDisplayInterface::WindowProc(HWND hWnd,UINT uMsg,WPARAM wP
                 static char buffer[4096];
                 ZeroMemory(buffer,sizeof(buffer));
 
-                // TODO: Copy song information to buffer.
+                metadb_handle_ptr track;
+                if (plm->activeplaylist_get_item_handle(track,static_cast<t_size>(wParam))) {
+                    file_info_impl info;
+                    if (track->get_info(info)) {
+                        int length=static_cast<int>(pbc->playback_get_length());
+                        char const* path=track->get_path()+sizeof("file://")-1;
+
+                        _snprintf_s(
+                            buffer,
+                            _TRUNCATE,
+                            "%s\t%s\t%d\t%s\t%s",
+                            info.meta_get("ARTIST",0),
+                            info.meta_get("TITLE",0),
+                            length,
+                            path,
+                            get_rating(info)
+                        );
+                    }
+                }
 
                 // Pass the buffer to CDA.
                 static COPYDATASTRUCT cds;
