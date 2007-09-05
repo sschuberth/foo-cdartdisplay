@@ -144,9 +144,8 @@ class CDArtDisplayInterface:public initquit,public play_callback
         file_info_impl info;
         if (p_track->get_info(info)) {
             // TODO: Find out how to get the rating.
-            char const* rating_str=info.meta_get("RATING",0);
-            //int rating=atoi(rating_str);
-            //SendMessage(m_cda_window,WM_USER,0,IPC_RATING_CHANGED_NOTIFICATION);
+            int rating=atoi(info.meta_get("RATING",0));
+            SendMessage(m_cda_window,WM_USER,static_cast<WPARAM>(rating),IPC_RATING_CHANGED_NOTIFICATION);
         }
     }
 
@@ -267,11 +266,11 @@ LRESULT CALLBACK CDArtDisplayInterface::WindowProc(HWND hWnd,UINT uMsg,WPARAM wP
                 cds.cbData=sizeof(buffer);
                 cds.lpData=buffer;
 
-                SendMessage(_this->m_cda_window,WM_COPYDATA,reinterpret_cast<WPARAM>(hWnd),reinterpret_cast<LPARAM>(&cds));
+                return SendMessage(_this->m_cda_window,WM_COPYDATA,reinterpret_cast<WPARAM>(hWnd),reinterpret_cast<LPARAM>(&cds));
             }
 
             case IPC_GET_DURATION: {
-                return 100;//static_cast<LONG>(pbc->playback_get_length());
+                return static_cast<LONG>(pbc->playback_get_length());
             }
             case IPC_SET_POSITION: {
                 pbc->playback_seek(static_cast<double>(wParam));
@@ -308,7 +307,7 @@ LRESULT CALLBACK CDArtDisplayInterface::WindowProc(HWND hWnd,UINT uMsg,WPARAM wP
                 cds.cbData=sizeof(buffer);
                 cds.lpData=buffer;
 
-                SendMessage(_this->m_cda_window,WM_COPYDATA,reinterpret_cast<WPARAM>(hWnd),reinterpret_cast<LPARAM>(&cds));
+                return SendMessage(_this->m_cda_window,WM_COPYDATA,reinterpret_cast<WPARAM>(hWnd),reinterpret_cast<LPARAM>(&cds));
             }
             case IPC_SET_CALLBACK_HWND: {
                 if (!_this) {
@@ -321,8 +320,7 @@ LRESULT CALLBACK CDArtDisplayInterface::WindowProc(HWND hWnd,UINT uMsg,WPARAM wP
                 return static_cast<LONG>(plm->activeplaylist_get_focus_item());
             }
             case IPC_GET_POSITION: {
-                LONG a=50;//static_cast<LONG>(pbc->playback_get_position());
-                return a;
+                return static_cast<LONG>(pbc->playback_get_position());
             }
 
             // IPC_TRACK_CHANGED_NOTIFICATION gets handled by a virtual method.
