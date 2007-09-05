@@ -9,7 +9,7 @@
 #define FOO_CLASS_NAME      _T("THeliumMainForm")
 
 DECLARE_COMPONENT_VERSION(
-    "CD Art Display Info",
+    "CD Art Display Interface",
     FOO_CAD_VERSION " release " FOO_PLUGIN_RELEASE,
     "Message handling plug-in to interface with CD Art Display <http://www.closetosoftware.com/?s=cdartdisplay>.\n"
     "Compiled on " __DATE__ ", copyright 2007 by eyebex <eyebex@threekings.tk>."
@@ -43,7 +43,6 @@ enum {
 
     IPC_RATING_CHANGED_NOTIFICATION = 639
 };
-
 
 class CDArtDisplayInterface:public initquit,public play_callback
 {
@@ -209,6 +208,14 @@ LRESULT CALLBACK CDArtDisplayInterface::WindowProc(HWND hWnd,UINT uMsg,WPARAM wP
             case IPC_SET_VOLUME: {
                 // Get the volume scale factor in range ]0,100].
                 double scale=static_cast<double>(wParam)/100.0;
+
+                // Clamp the volume to valid input for log10().
+                if (scale<=0.0) {
+                    scale=1.0e-5;
+                } else if (scale>1.0) {
+                    scale=1.0;
+                }
+
                 pbc->set_volume(static_cast<float>(20.0*log10(scale)));
                 return 1;
             }
@@ -234,28 +241,30 @@ LRESULT CALLBACK CDArtDisplayInterface::WindowProc(HWND hWnd,UINT uMsg,WPARAM wP
                         char const* artist=info.meta_get("ARTIST",0);
                         char const* album=info.meta_get("ALBUM",0);
                         char const* genre=info.meta_get("GENRE",0);
-
-                        // Note: "Comment" and "Current Track" need to be
-                        // swapped compared to the API documentation!
                         char const* year=info.meta_get("DATE",0);
-                        int number=atoi(info.meta_get("TRACKNUMBER",0));
                         char const* comment=info.meta_get("COMMENT",0);
-                        int length=static_cast<int>(pbc->playback_get_length());
 
+                        // TODO: Think about making this an option in the GUI.
+                        int number=atoi(info.meta_get("TRACKNUMBER",0));
+
+                        int length=static_cast<int>(pbc->playback_get_length());
                         char const* path=track->get_path()+sizeof("file://")-1;
-                        //char const* path="S:\\Audio\\Albums\\A\\A Perfect Circle\\eMOTIVe";
 
                         // TODO: Find out how to get the rating.
                         char const* rating=info.meta_get("RATING",0);
 
+                        // TODO: Think about making this an option in the GUI.
+                        char const* covers="";
+
                         _snprintf_s(
                             buffer,
                             _TRUNCATE,
-                            "%s\t%s\t%s\t%s\t\t%s\t%d\t%s\t%d\t\t%s\t\t%s",
+                            "%s\t%s\t%s\t%s\t%s\t%s\t%d\t%d\t%s\t%s\t%s",
                             title,artist,album,genre,
-                            year,number,comment,length,
+                            year,comment,number,length,
                             path,
-                            rating
+                            rating,
+                            covers
                         );
                     }
                 }
