@@ -42,6 +42,10 @@ enum HeliumMessage {
     IPC_GET_PLAYER_STATE                       ,
     IPC_PLAYER_STATE_CHANGED_NOTIFICATION      , // Message to send to CAD.
     IPC_AUTOENQUEUE_OPTIONS                    , // Ignored.
+    IPC_SET_REPEAT                             , // TODO
+    IPC_SHUTDOWN_NOTIFICATION                  , // Message to send to CAD.
+    IPC_GET_REPEAT                             , // TODO
+    IPC_CLOSE_HELIUM                           ,
 
     IPC_RATING_CHANGED_NOTIFICATION       = 639, // Message to send to CAD.
 
@@ -145,7 +149,8 @@ class CDArtDisplayInterface:public initquit,public play_callback
     void on_playback_starting(play_control::t_track_command p_command,bool p_paused) {
         if (p_paused) {
             SendMessage(m_cda_window,WM_USER,static_cast<WPARAM>(HS_PAUSED),IPC_PLAYER_STATE_CHANGED_NOTIFICATION);
-        } else {
+        }
+        else {
             if (p_command==play_control::track_command_play || p_command==play_control::track_command_resume) {
                 SendMessage(m_cda_window,WM_USER,static_cast<WPARAM>(HS_PLAYING),IPC_PLAYER_STATE_CHANGED_NOTIFICATION);
             }
@@ -210,6 +215,7 @@ LRESULT CALLBACK CDArtDisplayInterface::WindowProc(HWND hWnd,UINT uMsg,WPARAM wP
     else if (uMsg==WM_DESTROY) {
         static_api_ptr_t<play_callback_manager> pcm;
         pcm->unregister_callback(_this);
+        SendMessage(_this->m_cda_window,WM_USER,0,IPC_SHUTDOWN_NOTIFICATION);
     }
     else if (uMsg==WM_USER) {
         static_api_ptr_t<playback_control> pbc;
@@ -248,7 +254,8 @@ LRESULT CALLBACK CDArtDisplayInterface::WindowProc(HWND hWnd,UINT uMsg,WPARAM wP
                 // Clamp the volume to valid input for log10().
                 if (scale<=0.0) {
                     scale=1.0e-5;
-                } else if (scale>1.0) {
+                }
+                else if (scale>1.0) {
                     scale=1.0;
                 }
 
@@ -380,6 +387,11 @@ LRESULT CALLBACK CDArtDisplayInterface::WindowProc(HWND hWnd,UINT uMsg,WPARAM wP
                     return HS_PLAYING;
                 }
                 return HS_STOPPED;
+            }
+
+            case IPC_CLOSE_HELIUM: {
+                static_api_ptr_t<user_interface>()->shutdown();
+                return 1;
             }
 
             default: {
