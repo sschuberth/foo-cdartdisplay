@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8.00"
+	Version="8,00"
 	Name="foo_cdartdisplay"
 	ProjectGUID="{DCD9FC74-4041-4EBD-BFB1-8C1F8CE0CE75}"
 	RootNamespace="foo_cdartdisplay"
@@ -40,7 +40,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="D:\Development\Libraries\foobar-sdk"
+				AdditionalIncludeDirectories="&quot;D:\Development\Libraries\foobar SDK&quot;"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -63,7 +63,7 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="shared.lib"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="D:\Development\Libraries\foobar-sdk\foobar2000\shared"
+				AdditionalLibraryDirectories="&quot;D:\Development\Libraries\foobar SDK\foobar2000\shared&quot;"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				TargetMachine="1"
@@ -118,7 +118,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="D:\Development\Libraries\foobar-sdk"
+				AdditionalIncludeDirectories="&quot;D:\Development\Libraries\foobar SDK&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"
@@ -139,7 +139,7 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="shared.lib"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="D:\Development\Libraries\foobar-sdk\foobar2000\shared"
+				AdditionalLibraryDirectories="&quot;D:\Development\Libraries\foobar SDK\foobar2000\shared&quot;"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				OptimizeReferences="2"
