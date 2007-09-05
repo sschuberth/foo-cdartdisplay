@@ -187,21 +187,34 @@ class CDArtDisplayInterface:public initquit,public play_callback
     void on_playback_edited(metadb_handle_ptr p_track) {
         file_info_impl info;
         if (p_track->get_info(info)) {
-            int rating=atoi(get_rating(info));
+            // Map rating to range [0,10].
+            int rating=atoi(get_rating(info))*2;
             SendMessage(m_cda_window,WM_USER,static_cast<WPARAM>(rating),IPC_RATING_CHANGED_NOTIFICATION);
         }
     }
 
   private:
 
+    static char const* get_meta(file_info_impl const& info,char const* name) {
+        static char const empty[]="\0";
+        char const* value=info.meta_get(name,0);
+        if (!value) {
+            value=empty;
+        }
+        return value;
+    }
+
     static char const* get_rating(file_info_impl const& info) {
-        // TODO: Find out how to get the rating.
+        static char const empty[]="0";
         char const* rating=info.meta_get("RATING",0);
         if (!rating) {
             rating=info.meta_get("TRACKRATING",0);
         }
         if (!rating) {
             rating=info.meta_get("ALBUMRATING",0);
+        }
+        if (!rating) {
+            rating=empty;
         }
         return rating;
     }
@@ -227,9 +240,9 @@ LRESULT CALLBACK CDArtDisplayInterface::WindowProc(HWND hWnd,UINT uMsg,WPARAM wP
         static_api_ptr_t<play_callback_manager> pcm;
         pcm->register_callback(
             _this,
-            play_callback::flag_on_playback_starting |
-            play_callback::flag_on_playback_stop |
-            play_callback::flag_on_playback_pause |
+            play_callback::flag_on_playback_starting  |
+            play_callback::flag_on_playback_stop      |
+            play_callback::flag_on_playback_pause     |
             play_callback::flag_on_playback_new_track |
             play_callback::flag_on_playback_edited,
             false
@@ -303,36 +316,47 @@ LRESULT CALLBACK CDArtDisplayInterface::WindowProc(HWND hWnd,UINT uMsg,WPARAM wP
                 if (pbc->get_now_playing(track)) {
                     file_info_impl info;
                     if (track->get_info(info)) {
-                        // TODO: Think about making this an option in the GUI.
-                        int number=atoi(info.meta_get("TRACKNUMBER",0));
+                        // If there is no track number, do not return a NULL string.
+                        static char number_buf[8];
+                        ZeroMemory(number_buf,sizeof(number_buf));
+                        char const* number=info.meta_get("TRACKNUMBER",0);
+                        if (number) {
+                            // Get rid of the total number of tracks if present.
+                            _snprintf_s(number_buf,_TRUNCATE,"%d",atoi(number));
+                        }
+                        number=number_buf;
 
                         int length=static_cast<int>(pbc->playback_get_length());
                         char const* path=track->get_path()+sizeof("file://")-1;
 
+                        // Map rating to range [0,10].
+                        int rating=atoi(get_rating(info))*2;
+
                         // TODO: Think about making this an option in the GUI.
                         char const* cover="";
 
+                        // See <http://wiki.hydrogenaudio.org/index.php?title=Foobar2000:ID3_Tag_Mapping>.
                         _snprintf_s(
                             buffer,
                             _TRUNCATE,
-                            "%s\t%s\t%s\t%s\t%s\t%s\t%d\t%d\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s",
-                            info.meta_get("TITLE",0),
-                            info.meta_get("ARTIST",0),
-                            info.meta_get("ALBUM",0),
-                            info.meta_get("GENRE",0),
-                            info.meta_get("DATE",0),
-                            info.meta_get("COMMENT",0),
+                            "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%d\t%s\t%d\t%s\t%s\t%s\t%s\t%s\t%s\t%s",
+                            get_meta(info,"TITLE"),
+                            get_meta(info,"ARTIST"),
+                            get_meta(info,"ALBUM"),
+                            get_meta(info,"GENRE"),
+                            get_meta(info,"DATE"),
+                            get_meta(info,"COMMENT"),
                             number,
                             length,
                             path,
-                            get_rating(info),
+                            rating,
                             cover,
-                            info.meta_get("COMPOSER",0),
-                            info.meta_get("LYRICIST",0),
-                            info.meta_get("PUBLISHER",0),
-                            info.meta_get("CONDUCTOR",0),
-                            info.meta_get("PRODUCER",0),
-                            info.meta_get("COPYRIGHT",0)
+                            get_meta(info,"COMPOSER"),
+                            get_meta(info,"LYRICIST"),
+                            get_meta(info,"PUBLISHER"),
+                            get_meta(info,"CONDUCTOR"),
+                            get_meta(info,"PRODUCER"),
+                            get_meta(info,"COPYRIGHT")
                         );
                     }
                 }
@@ -383,15 +407,19 @@ LRESULT CALLBACK CDArtDisplayInterface::WindowProc(HWND hWnd,UINT uMsg,WPARAM wP
                         int length=static_cast<int>(pbc->playback_get_length());
                         char const* path=track->get_path()+sizeof("file://")-1;
 
+                        // Map rating to range [0,255].
+                        int rating=atoi(get_rating(info))*51;
+
+                        // See <http://wiki.hydrogenaudio.org/index.php?title=Foobar2000:ID3_Tag_Mapping>.
                         _snprintf_s(
                             buffer,
                             _TRUNCATE,
-                            "%s\t%s\t%d\t%s\t%s",
-                            info.meta_get("ARTIST",0),
-                            info.meta_get("TITLE",0),
+                            "%s\t%s\t%d\t%s\t%d",
+                            get_meta(info,"ARTIST"),
+                            get_meta(info,"TITLE"),
                             length,
                             path,
-                            get_rating(info)
+                            rating
                         );
                     }
                 }
