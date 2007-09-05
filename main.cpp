@@ -15,33 +15,43 @@ DECLARE_COMPONENT_VERSION(
     "Compiled on " __DATE__ ", copyright 2007 by eyebex <eyebex@threekings.tk>."
 );
 
-enum {
-    IPC_PLAY                        = 100,
-    IPC_PLAYPAUSE                        ,
-    IPC_FORCEPAUSE                       ,
-    IPC_STOP                             ,
-    IPC_NEXT                             ,
-    IPC_PREVIOUS                         ,
+enum HeliumMessage {
+    IPC_PLAY                              = 100,
+    IPC_PLAYPAUSE                              ,
+    IPC_FORCEPAUSE                             ,
+    IPC_STOP                                   ,
+    IPC_NEXT                                   ,
+    IPC_PREVIOUS                               ,
 
-    IPC_SET_VOLUME                  = 108,
-    IPC_GET_VOLUME                       ,
-    IPC_GET_CURRENT_TRACK                ,
+    IPC_SET_VOLUME                        = 108,
+    IPC_GET_VOLUME                             ,
+    IPC_GET_CURRENT_TRACK                      ,
 
-    IPC_GET_DURATION                = 113,
-    IPC_SET_POSITION                     ,
-    IPC_IS_PLAYING                       ,
-    IPC_IS_PAUSED                        ,
-    IPC_GET_LIST_LENGTH                  ,
-    IPC_SET_LIST_POS                     ,
-    IPC_GET_LIST_ITEM                    ,
-    IPC_SET_CALLBACK_HWND                ,
-    IPC_GET_LIST_POS                     ,
-    IPC_GET_POSITION                     ,
-    IPC_TRACK_CHANGED_NOTIFICATION       ,
-    IPC_SHOW_PLAYER_WINDOW               ,
-    IPC_GET_PLAYER_STATE                 ,
+    IPC_GET_DURATION                      = 113,
+    IPC_SET_POSITION                           ,
+    IPC_IS_PLAYING                             ,
+    IPC_IS_PAUSED                              ,
+    IPC_GET_LIST_LENGTH                        ,
+    IPC_SET_LIST_POS                           ,
+    IPC_GET_LIST_ITEM                          ,
+    IPC_SET_CALLBACK_HWND                      ,
+    IPC_GET_LIST_POS                           ,
+    IPC_GET_POSITION                           ,
+    IPC_TRACK_CHANGED_NOTIFICATION             , // Message to send to CAD.
+    IPC_SHOW_PLAYER_WINDOW                     ,
+    IPC_GET_PLAYER_STATE                       ,
+    IPC_PLAYER_STATE_CHANGED_NOTIFICATION      , // Message to send to CAD.
+    IPC_AUTOENQUEUE_OPTIONS                    , // Ignored.
 
-    IPC_RATING_CHANGED_NOTIFICATION = 639
+    IPC_RATING_CHANGED_NOTIFICATION       = 639, // Message to send to CAD.
+
+    IPC_NEW_COVER_NOTIFICATION            = 800  // Message to send to CAD (ignored).
+};
+
+enum HeliumState {
+    HS_STOPPED    ,
+    HS_PLAYING    ,
+    HS_PAUSED
 };
 
 class CDArtDisplayInterface:public initquit,public play_callback
@@ -124,16 +134,34 @@ class CDArtDisplayInterface:public initquit,public play_callback
     // warning C4100: unreferenced formal parameter
     #pragma warning(disable:4100)
 
-    void on_playback_starting(play_control::t_track_command p_command,bool p_paused) {}
-    void on_playback_stop(play_control::t_stop_reason p_reason) {}
     void on_playback_seek(double p_time) {}
-    void on_playback_pause(bool p_state) {}
     void on_playback_dynamic_info(const file_info & p_info) {}
     void on_playback_dynamic_info_track(const file_info & p_info) {}
     void on_playback_time(double p_time) {}
     void on_volume_change(float p_new_val) {}
 
     #pragma warning(default:4100)
+
+    void on_playback_starting(play_control::t_track_command p_command,bool p_paused) {
+        if (p_paused) {
+            SendMessage(m_cda_window,WM_USER,static_cast<WPARAM>(HS_PAUSED),IPC_PLAYER_STATE_CHANGED_NOTIFICATION);
+        } else {
+            if (p_command==play_control::track_command_play || p_command==play_control::track_command_resume) {
+                SendMessage(m_cda_window,WM_USER,static_cast<WPARAM>(HS_PLAYING),IPC_PLAYER_STATE_CHANGED_NOTIFICATION);
+            }
+        }
+    }
+
+    void on_playback_stop(play_control::t_stop_reason p_reason) {
+        if (p_reason==play_control::stop_reason_user || p_reason==play_control::stop_reason_shutting_down) {
+            SendMessage(m_cda_window,WM_USER,static_cast<WPARAM>(HS_STOPPED),IPC_PLAYER_STATE_CHANGED_NOTIFICATION);
+        }
+    }
+
+    void on_playback_pause(bool p_state) {
+        HeliumState state=p_state?HS_PAUSED:HS_PLAYING;
+        SendMessage(m_cda_window,WM_USER,static_cast<WPARAM>(state),IPC_PLAYER_STATE_CHANGED_NOTIFICATION);
+    }
 
     void on_playback_new_track(metadb_handle_ptr p_track) {
         SendMessage(m_cda_window,WM_USER,0,IPC_TRACK_CHANGED_NOTIFICATION);
@@ -169,7 +197,15 @@ LRESULT CALLBACK CDArtDisplayInterface::WindowProc(HWND hWnd,UINT uMsg,WPARAM wP
         SetWindowLongA(hWnd,GWL_USERDATA,(LONG)_this);
 
         static_api_ptr_t<play_callback_manager> pcm;
-        pcm->register_callback(_this,play_callback::flag_on_playback_new_track|play_callback::flag_on_playback_edited,false);
+        pcm->register_callback(
+            _this,
+            play_callback::flag_on_playback_starting |
+            play_callback::flag_on_playback_stop |
+            play_callback::flag_on_playback_pause |
+            play_callback::flag_on_playback_new_track |
+            play_callback::flag_on_playback_edited,
+            false
+        );
     }
     else if (uMsg==WM_DESTROY) {
         static_api_ptr_t<play_callback_manager> pcm;
@@ -332,23 +368,19 @@ LRESULT CALLBACK CDArtDisplayInterface::WindowProc(HWND hWnd,UINT uMsg,WPARAM wP
                 return static_cast<LONG>(pbc->playback_get_position());
             }
 
-            // IPC_TRACK_CHANGED_NOTIFICATION gets handled by a virtual method.
-
             case IPC_SHOW_PLAYER_WINDOW: {
                 static_api_ptr_t<user_interface>()->activate();
                 return 1;
             }
             case IPC_GET_PLAYER_STATE: {
                 if (pbc->is_paused()) {
-                    return 2;
+                    return HS_PAUSED;
                 }
                 if (pbc->is_playing()) {
-                    return 1;
+                    return HS_PLAYING;
                 }
-                return 0;
+                return HS_STOPPED;
             }
-
-            // IPC_RATING_CHANGED_NOTIFICATION gets handled by a virtual method
 
             default: {
                 return 0;
