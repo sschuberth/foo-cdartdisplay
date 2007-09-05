@@ -175,13 +175,24 @@ class CDArtDisplayInterface:public initquit,public play_callback
     void on_playback_edited(metadb_handle_ptr p_track) {
         file_info_impl info;
         if (p_track->get_info(info)) {
-            // TODO: Find out how to get the rating.
-            int rating=atoi(info.meta_get("RATING",0));
+            int rating=atoi(get_rating(info));
             SendMessage(m_cda_window,WM_USER,static_cast<WPARAM>(rating),IPC_RATING_CHANGED_NOTIFICATION);
         }
     }
 
   private:
+
+    static char const* get_rating(file_info_impl const& info) {
+        // TODO: Find out how to get the rating.
+        char const* rating=info.meta_get("RATING",0);
+        if (!rating) {
+            rating=info.meta_get("TRACKRATING",0);
+        }
+        if (!rating) {
+            rating=info.meta_get("ALBUMRATING",0);
+        }
+        return rating;
+    }
 
     static ATOM s_atom;
     static int s_instances;
@@ -292,22 +303,27 @@ LRESULT CALLBACK CDArtDisplayInterface::WindowProc(HWND hWnd,UINT uMsg,WPARAM wP
 
                         int length=static_cast<int>(pbc->playback_get_length());
                         char const* path=track->get_path()+sizeof("file://")-1;
-
-                        // TODO: Find out how to get the rating.
-                        char const* rating=info.meta_get("RATING",0);
+                        char const* rating=get_rating(info);
 
                         // TODO: Think about making this an option in the GUI.
-                        char const* covers="";
+                        char const* cover="";
+
+                        char const* composer=info.meta_get("COMPOSER",0);
+                        char const* lyricist=info.meta_get("LYRICIST",0);
+                        char const* publisher=info.meta_get("PUBLISHER",0);
+                        char const* conductor=info.meta_get("CONDUCTOR",0);
+                        char const* producer=info.meta_get("PRODUCER",0);
+                        char const* copyright=info.meta_get("COPYRIGHT",0);
 
                         _snprintf_s(
                             buffer,
                             _TRUNCATE,
-                            "%s\t%s\t%s\t%s\t%s\t%s\t%d\t%d\t%s\t%s\t%s",
-                            title,artist,album,genre,
-                            year,comment,number,length,
-                            path,
-                            rating,
-                            covers
+                            "%s\t%s\t%s\t%s\t%s\t%s\t%d\t%d\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s",
+                            title,artist,album,genre,year,comment,
+                            number,
+                            length,path,rating,
+                            cover,
+                            composer,lyricist,publisher,conductor,producer,copyright
                         );
                     }
                 }
