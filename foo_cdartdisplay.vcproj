@@ -176,6 +176,10 @@
 	</References>
 	<Files>
 		<File
+			RelativePath=".\component.h"
+			>
+		</File>
+		<File
 			RelativePath=".\helpers.inl"
 			>
 		</File>
@@ -184,7 +188,15 @@
 			>
 		</File>
 		<File
-			RelativePath=".\component.h"
+			RelativePath=".\preferences.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\preferences.rc"
+			>
+		</File>
+		<File
+			RelativePath=".\resource.h"
 			>
 		</File>
 	</Files>
