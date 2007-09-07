@@ -180,11 +180,11 @@
 			>
 		</File>
 		<File
-			RelativePath=".\main.cpp"
+			RelativePath=".\interface.cpp"
 			>
 		</File>
 		<File
-			RelativePath=".\main.h"
+			RelativePath=".\component.h"
 			>
 		</File>
 	</Files>
