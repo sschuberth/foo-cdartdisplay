@@ -10,18 +10,20 @@
  * 1.6 dated 2007-09-04.
  */
 
-#ifndef MAIN_H
-#define MAIN_H
+#ifndef COMPONENT_H
+#define COMPONENT_H
 
 // Get rid of tons of warnings.
 #pragma warning(push,1)
 #include <foobar2000/SDK/foobar2000.h>
 #pragma warning(pop)
 
-#define FOO_CAD_VERSION     "1.0"
-#define FOO_PLUGIN_RELEASE  "1"
-#define FOO_PLUGIN_NAME     _T("foo_cdartdisplay")
-#define FOO_CLASS_NAME      _T("THeliumMainForm")
+#define FOO_PLUGIN_NAME         "CD Art Display Interface"
+#define FOO_TARGET_CAD_VERSION  "1.0"
+#define FOO_PLUGIN_RELEASE      "1"
+
+#define FOO_PLUGIN_FILE         _T("foo_cdartdisplay")
+#define FOO_WINDOW_CLASS_NAME   _T("THeliumMainForm")
 
 enum HeliumMessage {
     IPC_PLAY                              = 100,
@@ -66,4 +68,4 @@ enum HeliumState {
     HS_PAUSED
 };
 
-#endif // MAIN_H
+#endif // COMPONENT_H
