@@ -187,7 +187,7 @@ class CDArtDisplayInterface:public initquit,public play_callback
     void on_playback_edited(metadb_handle_ptr p_track) {
         file_info_impl info;
         if (p_track->get_info(info)) {
-            // Map rating to range [0,10].
+            // Map rating from range [0,5] to [0,10].
             int rating=atoi(get_rating(info))*2;
             SendMessage(m_cda_window,WM_USER,static_cast<WPARAM>(rating),IPC_RATING_CHANGED_NOTIFICATION);
         }
@@ -284,24 +284,27 @@ LRESULT CALLBACK CDArtDisplayInterface::WindowProc(HWND hWnd,UINT uMsg,WPARAM wP
             }
 
             case IPC_SET_VOLUME: {
-                // Get the volume scale factor in range ]0,100].
-                double scale=static_cast<double>(wParam)/100.0;
+                // Get the volume scale in range [0,100].
+                double volume=static_cast<float>(wParam);
 
-                // Clamp the volume to valid input for log10().
-                if (scale<=0.0) {
-                    scale=1.0e-5;
+                // Clamp due to mouse scroll wheel events.
+                if (volume<0) {
+                    volume=0;
                 }
-                else if (scale>1.0) {
-                    scale=1.0;
+                else if (volume>100) {
+                    volume=100;
                 }
 
-                pbc->set_volume(static_cast<float>(20.0*log10(scale)));
+                // Set the volume gain in dB.
+                pbc->set_volume(volume-100.0f);
                 return 1;
             }
             case IPC_GET_VOLUME: {
-                // Get volume gain in dB in range [-100,0].
-                float db=pbc->get_volume();
-                return static_cast<LONG>(audio_math::gain_to_scale(db)*100.0);
+                // Get volume gain in range [-100,0].
+                float volume=pbc->get_volume();
+
+                // Return the volume scale.
+                return static_cast<LONG>(volume+100.0f);
             }
             case IPC_GET_CURRENT_TRACK: {
                 if (!_this) {
@@ -329,7 +332,7 @@ LRESULT CALLBACK CDArtDisplayInterface::WindowProc(HWND hWnd,UINT uMsg,WPARAM wP
                         int length=static_cast<int>(pbc->playback_get_length());
                         char const* path=track->get_path()+sizeof("file://")-1;
 
-                        // Map rating to range [0,10].
+                        // Map rating from range [0,5] to [0,10].
                         int rating=atoi(get_rating(info))*2;
 
                         // TODO: Think about making this an option in the GUI.
@@ -407,7 +410,7 @@ LRESULT CALLBACK CDArtDisplayInterface::WindowProc(HWND hWnd,UINT uMsg,WPARAM wP
                         int length=static_cast<int>(pbc->playback_get_length());
                         char const* path=track->get_path()+sizeof("file://")-1;
 
-                        // Map rating to range [0,255].
+                        // Map rating from range [0,5] to [0,255].
                         int rating=atoi(get_rating(info))*51;
 
                         // See <http://wiki.hydrogenaudio.org/index.php?title=Foobar2000:ID3_Tag_Mapping>.
