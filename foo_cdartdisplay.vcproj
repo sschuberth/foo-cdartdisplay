@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8,00"
+	Version="8.00"
 	Name="foo_cdartdisplay"
 	ProjectGUID="{DCD9FC74-4041-4EBD-BFB1-8C1F8CE0CE75}"
 	RootNamespace="foo_cdartdisplay"
@@ -176,7 +176,15 @@
 	</References>
 	<Files>
 		<File
+			RelativePath=".\helpers.inl"
+			>
+		</File>
+		<File
 			RelativePath=".\main.cpp"
+			>
+		</File>
+		<File
+			RelativePath=".\main.h"
 			>
 		</File>
 	</Files>
