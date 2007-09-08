@@ -18,7 +18,6 @@ class CDArtDisplayInterface:public initquit,public play_callback
             // Register a minimal window class.
             WNDCLASS cls;
             memset(&cls,0,sizeof(cls));
-            cls.style=CS_OWNDC|CS_SAVEBITS;
             cls.lpfnWndProc=WindowProc;
             cls.hInstance=core_api::get_my_instance();
             cls.hCursor=LoadCursor(NULL,IDC_ARROW);
