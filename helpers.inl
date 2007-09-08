@@ -22,6 +22,7 @@ static GUID const ORDER_SHUFFLE_ALBUMS=
 static GUID const ORDER_SHUFFLE_DIRECTORIES=
 { 0x83c37600, 0xd725, 0x4727, { 0xb5, 0x3c, 0xbd, 0xef, 0xfe, 0x5f, 0x8d, 0xc7 } };
 
+// Returns the index of a GUID-identified order mode.
 static t_size get_playback_order_index(static_api_ptr_t<playlist_manager>& plm,GUID const& guid)
 {
     for (t_size i=0;i<plm->playback_order_get_count();++i) {
@@ -32,6 +33,7 @@ static t_size get_playback_order_index(static_api_ptr_t<playlist_manager>& plm,G
     return static_cast<t_size>(infinite);
 }
 
+// Returns an empty string instead of NULL for invalid meta data.
 static char const* get_meta(file_info_impl const& info,char const* name) {
     static char const empty[]="\0";
     char const* value=info.meta_get(name,0);
@@ -41,6 +43,7 @@ static char const* get_meta(file_info_impl const& info,char const* name) {
     return value;
 }
 
+// Returns a zero rating instead of NULL for unavailable rating data.
 static char const* get_rating(file_info_impl const& info) {
     static char const empty[]="0";
     char const* rating=info.meta_get("RATING",0);
