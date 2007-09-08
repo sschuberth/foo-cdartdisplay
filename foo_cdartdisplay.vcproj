@@ -61,7 +61,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="shared.lib"
+				AdditionalDependencies="shared.lib advapi32.lib"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="&quot;D:\Development\Libraries\foobar SDK\foobar2000\shared&quot;"
 				GenerateDebugInformation="true"
@@ -137,7 +137,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="shared.lib"
+				AdditionalDependencies="shared.lib advapi32.lib"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="&quot;D:\Development\Libraries\foobar SDK\foobar2000\shared&quot;"
 				GenerateDebugInformation="true"
@@ -201,5 +201,9 @@
 		</File>
 	</Files>
 	<Globals>
+		<Global
+			Name="RESOURCE_FILE"
+			Value="preferences.rc"
+		/>
 	</Globals>
 </VisualStudioProject>
