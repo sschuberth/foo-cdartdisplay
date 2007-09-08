@@ -7,6 +7,7 @@
 #define DEFAULT_CAD_PATH    get_registry_string(HKEY_CURRENT_USER,_T("Software\\CD Art Display"))
 #define DEFAULT_COVER_PATH  get_folder_path(CSIDL_MYPICTURES)
 
+// Returns a registry key's default value in UTF8.
 static char const* get_registry_string(HKEY key,LPCTSTR subkey) {
     TCHAR path[MAX_PATH];
     LONG size=MAX_PATH;
@@ -19,6 +20,7 @@ static char const* get_registry_string(HKEY key,LPCTSTR subkey) {
     return path_utf8;
 }
 
+// Returns a system folder path in UTF8.
 static char const* get_folder_path(int folder) {
     TCHAR path[MAX_PATH];
     SHGetFolderPath(NULL,folder,NULL,SHGFP_TYPE_CURRENT,path);
@@ -31,17 +33,17 @@ static char const* get_folder_path(int folder) {
 // {7cef938b-1b5f-4fe5-a8ca-a1711f6de31c}
 static GUID const cfg_cad_start_guid=
 { 0x7cef938b, 0x1b5f, 0x4fe5, { 0xa8, 0xca, 0xa1, 0x71, 0x1f, 0x6d, 0xe3, 0x1c } };
-static cfg_bool cfg_cad_start(cfg_cad_start_guid,DEFAULT_CAD_START);
+cfg_bool cfg_cad_start(cfg_cad_start_guid,DEFAULT_CAD_START);
 
 // {33b397c7-8e79-4302-b5af-058a269d0e4d}
 static GUID const cfg_cad_path_guid=
 { 0x33b397c7, 0x8e79, 0x4302, { 0xb5, 0xaf, 0x05, 0x8a, 0x26, 0x9d, 0x0e, 0x4d } };
-static cfg_string cfg_cad_path(cfg_cad_path_guid,DEFAULT_CAD_PATH);
+cfg_string cfg_cad_path(cfg_cad_path_guid,DEFAULT_CAD_PATH);
 
 // {68fb33a2-261f-4280-9029-3b02fe2d75f8}
 static GUID const cfg_cover_path_guid=
 { 0x68fb33a2, 0x261f, 0x4280, { 0x90, 0x29, 0x3b, 0x02, 0xfe, 0x2d, 0x75, 0xf8 } };
-static cfg_string cfg_cover_path(cfg_cover_path_guid,DEFAULT_COVER_PATH);
+cfg_string cfg_cover_path(cfg_cover_path_guid,DEFAULT_COVER_PATH);
 
 class CDArtDisplayPreferences:public preferences_page
 {
@@ -89,9 +91,12 @@ class CDArtDisplayPreferences:public preferences_page
             case WM_INITDIALOG: {
                 HWND item;
 
+                // Set the check box state according to the stored configuration.
                 item=GetDlgItem(hWnd,IDC_CAD_START);
                 uSendMessage(item,BM_SETCHECK,cfg_cad_start,0);
 
+                // Get the foobar2000 configuration strings and convert them to
+                // the OS' format.
                 static pfc::stringcvt::string_os_from_utf8 path2os;
 
                 path2os.convert(cfg_cad_path);
@@ -104,15 +109,13 @@ class CDArtDisplayPreferences:public preferences_page
 
                 return 1;
             }
-            case WM_NOTIFY: {
-                cfg_cad_start=uSendDlgItemMessage(hWnd,IDC_CAD_START,BM_GETCHECK,0,0)!=0;
-
-                EnableWindow(GetDlgItem(hWnd,IDC_CAD_PATH),cfg_cad_start);
-                // TODO: Fix edit control redraw issue.
-
-                return 0;
-            }
             case WM_COMMAND: {
+                // Get the check box state and toggle the edit control accordingly.
+                cfg_cad_start=uSendDlgItemMessage(hWnd,IDC_CAD_START,BM_GETCHECK,0,0)!=0;
+                EnableWindow(GetDlgItem(hWnd,IDC_CAD_PATH),cfg_cad_start);
+
+                // Get all edit control string in the OS' format and convert them
+                // to UTF8 for foobar2000.
                 static pfc::stringcvt::string_utf8_from_os path2utf8;
                 TCHAR path[MAX_PATH];
 

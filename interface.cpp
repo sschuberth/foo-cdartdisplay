@@ -1,5 +1,9 @@
 #include "component.h"
 
+extern cfg_bool cfg_cad_start;
+extern cfg_string cfg_cad_path;
+extern cfg_string cfg_cover_path;
+
 DECLARE_COMPONENT_VERSION(
     FOO_PLUGIN_NAME,
     FOO_TARGET_CAD_VERSION " release " FOO_PLUGIN_RELEASE,
@@ -59,6 +63,13 @@ class CDArtDisplayInterface:public initquit,public play_callback
 #ifndef NDEBUG
         MessageBox(core_api::get_main_window(),_T("Construction was successful."),FOO_PLUGIN_FILE,MB_OK|MB_ICONINFORMATION);
 #endif
+
+        // If enabled, start CAD with foobar2000.
+        if (cfg_cad_start) {
+            if (WinExec(cfg_cad_path,SW_SHOWDEFAULT)<32) {
+                MessageBox(core_api::get_main_window(),_T("Unable to launch CD Art Display."),FOO_PLUGIN_FILE,MB_OK|MB_ICONERROR);
+            }
+        }
     }
 
     void on_quit() {
@@ -240,9 +251,6 @@ class CDArtDisplayInterface:public initquit,public play_callback
                             // Map rating from range [0,5] to [0,10].
                             int rating=atoi(get_rating(info))*2;
 
-                            // TODO: Think about making this an option in the GUI.
-                            char const* cover="";
-
                             // See <http://wiki.hydrogenaudio.org/index.php?title=Foobar2000:ID3_Tag_Mapping>.
                             _snprintf_s(
                                 buffer,
@@ -258,7 +266,7 @@ class CDArtDisplayInterface:public initquit,public play_callback
                                 length,
                                 path,
                                 rating,
-                                cover,
+                                cfg_cover_path.get_ptr(),
                                 get_meta(info,"COMPOSER"),
                                 get_meta(info,"LYRICIST"),
                                 get_meta(info,"PUBLISHER"),
