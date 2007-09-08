@@ -52,11 +52,15 @@ END
 // Dialog
 //
 
-IDD_CONFIG DIALOGEX 0, 0, 330, 16
+IDD_CONFIG DIALOGEX 0, 0, 330, 135
 STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD
 FONT 8, "MS Shell Dlg", 0, 0, 0x0
 BEGIN
-    CONTROL         "Check1",IDC_CHECK1,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,132,0,39,8
+    CONTROL         "Start CD Art Display together with foobar2000:",IDC_CAD_START,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,6,6,162,8
+    EDITTEXT        IDC_CAD_PATH,18,18,252,12,ES_AUTOHSCROLL
+    LTEXT           "Global cover directory to report to CD Art Display:",IDC_COVER_LABEL,6,36,162,8
+    EDITTEXT        IDC_COVER_PATH,18,48,252,14,ES_AUTOHSCROLL
 END
 
 
@@ -72,7 +76,7 @@ BEGIN
     BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 323
-        BOTTOMMARGIN, 8
+        BOTTOMMARGIN, 127
     END
 END
 #endif    // APSTUDIO_INVOKED
