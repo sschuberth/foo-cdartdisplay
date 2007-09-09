@@ -376,26 +376,6 @@ class CDArtDisplayInterface:public initquit,public play_callback
                     return HS_STOPPED;
                 }
 
-                case IPC_AUTOENQUEUE_OPTIONS: {
-                    GUID guid=plm->playback_order_get_guid(plm->playback_order_get_active());
-
-                    // Cycle through all "Shuffle" modes and "Default".
-                    if (guid==ORDER_SHUFFLE_TRACKS) {
-                        plm->playback_order_set_active(get_playback_order_index(plm,ORDER_SHUFFLE_ALBUMS));
-                    }
-                    else if (guid==ORDER_SHUFFLE_ALBUMS) {
-                        plm->playback_order_set_active(get_playback_order_index(plm,ORDER_SHUFFLE_DIRECTORIES));
-                    }
-                    else if (guid==ORDER_SHUFFLE_DIRECTORIES) {
-                        plm->playback_order_set_active(get_playback_order_index(plm,ORDER_DEFAULT));
-                    }
-                    else {
-                        plm->playback_order_set_active(get_playback_order_index(plm,ORDER_SHUFFLE_TRACKS));
-                    }
-
-                    return 1;
-                }
-
                 case IPC_SET_REPEAT: {
                     GUID guid=plm->playback_order_get_guid(plm->playback_order_get_active());
 
@@ -421,6 +401,31 @@ class CDArtDisplayInterface:public initquit,public play_callback
                 case IPC_CLOSE_HELIUM: {
                     static_api_ptr_t<user_interface>()->shutdown();
                     return 1;
+                }
+
+                case IPC_SET_SHUFFLE: {
+                    GUID guid=plm->playback_order_get_guid(plm->playback_order_get_active());
+
+                    // Cycle through all "Shuffle" modes and "Default".
+                    if (guid==ORDER_SHUFFLE_TRACKS) {
+                        plm->playback_order_set_active(get_playback_order_index(plm,ORDER_SHUFFLE_ALBUMS));
+                    }
+                    else if (guid==ORDER_SHUFFLE_ALBUMS) {
+                        plm->playback_order_set_active(get_playback_order_index(plm,ORDER_SHUFFLE_DIRECTORIES));
+                    }
+                    else if (guid==ORDER_SHUFFLE_DIRECTORIES) {
+                        plm->playback_order_set_active(get_playback_order_index(plm,ORDER_DEFAULT));
+                    }
+                    else {
+                        plm->playback_order_set_active(get_playback_order_index(plm,ORDER_SHUFFLE_TRACKS));
+                    }
+
+                    return 1;
+                }
+                case IPC_GET_SHUFFLE: {
+                    // Check if the current order mode is any of the "Shuffle" modes.
+                    GUID guid=plm->playback_order_get_guid(plm->playback_order_get_active());
+                    return guid==ORDER_SHUFFLE_TRACKS || guid==ORDER_SHUFFLE_ALBUMS || guid==ORDER_SHUFFLE_DIRECTORIES;
                 }
 
                 default: {

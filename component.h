@@ -23,6 +23,7 @@
 #define FOO_PLUGIN_RELEASE      "1"
 
 #define FOO_PLUGIN_FILE         _T("foo_cdartdisplay")
+//#define FOO_WINDOW_CLASS_NAME   _T("foo_cdartdisplay_class")
 #define FOO_WINDOW_CLASS_NAME   _T("THeliumMainForm")
 
 enum HeliumMessage {
@@ -51,11 +52,14 @@ enum HeliumMessage {
     IPC_SHOW_PLAYER_WINDOW                     ,
     IPC_GET_PLAYER_STATE                       ,
     IPC_PLAYER_STATE_CHANGED_NOTIFICATION      , // Message to send to CAD.
-    IPC_AUTOENQUEUE_OPTIONS                    ,
+    IPC_AUTOENQUEUE_OPTIONS                    , // Ignored.
     IPC_SET_REPEAT                             ,
     IPC_SHUTDOWN_NOTIFICATION                  , // Message to send to CAD.
     IPC_GET_REPEAT                             ,
     IPC_CLOSE_HELIUM                           ,
+
+    IPC_GET_SHUFFLE                       = 140,
+    IPC_SET_SHUFFLE                            ,
 
     IPC_RATING_CHANGED_NOTIFICATION       = 639, // Message to send to CAD.
 
