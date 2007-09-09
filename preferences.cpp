@@ -89,44 +89,66 @@ class CDArtDisplayPreferences:public preferences_page
     static int CALLBACK WindowProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam) {
         switch (uMsg) {
             case WM_INITDIALOG: {
-                HWND item;
-
                 // Set the check box state according to the stored configuration.
-                item=GetDlgItem(hWnd,IDC_CAD_START);
-                uSendMessage(item,BM_SETCHECK,cfg_cad_start,0);
+                uSendDlgItemMessage(hWnd,IDC_CAD_START,BM_SETCHECK,cfg_cad_start,0);
+                EnableWindow(GetDlgItem(hWnd,IDC_CAD_PATH),cfg_cad_start);
 
                 // Get the foobar2000 configuration strings and convert them to
                 // the OS' format.
                 static pfc::stringcvt::string_os_from_utf8 path2os;
 
                 path2os.convert(cfg_cad_path);
-                item=GetDlgItem(hWnd,IDC_CAD_PATH);
-                uSendMessage(item,WM_SETTEXT,0,reinterpret_cast<LPARAM>(path2os.get_ptr()));
+                uSendDlgItemMessage(hWnd,IDC_CAD_PATH,WM_SETTEXT,0,reinterpret_cast<LPARAM>(path2os.get_ptr()));
 
                 path2os.convert(cfg_cover_path);
-                item=GetDlgItem(hWnd,IDC_COVER_PATH);
-                uSendMessage(item,WM_SETTEXT,0,reinterpret_cast<LPARAM>(path2os.get_ptr()));
+                uSendDlgItemMessage(hWnd,IDC_COVER_PATH,WM_SETTEXT,0,reinterpret_cast<LPARAM>(path2os.get_ptr()));
 
-                return 1;
+                return TRUE;
             }
             case WM_COMMAND: {
-                // Get the check box state and toggle the edit control accordingly.
-                cfg_cad_start=uSendDlgItemMessage(hWnd,IDC_CAD_START,BM_GETCHECK,0,0)!=0;
-                EnableWindow(GetDlgItem(hWnd,IDC_CAD_PATH),cfg_cad_start);
-
                 // Get all edit control string in the OS' format and convert them
                 // to UTF8 for foobar2000.
                 static pfc::stringcvt::string_utf8_from_os path2utf8;
+
                 TCHAR path[MAX_PATH];
+                LRESULT result;
 
-                if (uSendDlgItemMessage(hWnd,IDC_CAD_PATH,WM_GETTEXT,MAX_PATH,reinterpret_cast<LPARAM>(path))>0) {
-                    path2utf8.convert(path);
-                    cfg_cad_path=path2utf8;
-                }
-
-                if (uSendDlgItemMessage(hWnd,IDC_COVER_PATH,WM_GETTEXT,MAX_PATH,reinterpret_cast<LPARAM>(path))>0) {
-                    path2utf8.convert(path);
-                    cfg_cover_path=path2utf8;
+                switch (LOWORD(wParam)) {
+                    case IDC_CAD_START: {
+                        // Get the check box state and toggle the edit control accordingly.
+                        cfg_cad_start=uSendDlgItemMessage(hWnd,IDC_CAD_START,BM_GETCHECK,0,0)!=0;
+                        EnableWindow(GetDlgItem(hWnd,IDC_CAD_PATH),cfg_cad_start);
+                        break;
+                    }
+                    case IDC_CAD_PATH: {
+                        if (HIWORD(wParam)==EN_CHANGE) {
+                            result=uSendDlgItemMessage(hWnd,IDC_CAD_PATH,WM_GETTEXT,MAX_PATH,reinterpret_cast<LPARAM>(path));
+                            if (result==0) {
+                                cfg_cad_path.reset();
+                            }
+                            else if (result>0) {
+                                path2utf8.convert(path);
+                                cfg_cad_path=path2utf8;
+                            }
+                        }
+                        break;
+                    }
+                    case IDC_COVER_PATH: {
+                        if (HIWORD(wParam)==EN_CHANGE) {
+                            result=uSendDlgItemMessage(hWnd,IDC_COVER_PATH,WM_GETTEXT,MAX_PATH,reinterpret_cast<LPARAM>(path));
+                            if (result==0) {
+                                cfg_cover_path.reset();
+                            }
+                            else if (result>0) {
+                                path2utf8.convert(path);
+                                cfg_cover_path=path2utf8;
+                            }
+                        }
+                        break;
+                    }
+                    default: {
+                        return 1;
+                    }
                 }
 
                 return 0;
