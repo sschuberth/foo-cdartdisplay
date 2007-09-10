@@ -3,9 +3,10 @@
 #include "component.h"
 #include "resource.h"
 
-#define DEFAULT_CAD_START   true
-#define DEFAULT_CAD_PATH    get_registry_string(HKEY_CURRENT_USER,_T("Software\\CD Art Display"))
-#define DEFAULT_COVER_PATH  get_folder_path(CSIDL_MYPICTURES)
+#define DEFAULT_CAD_START     true
+#define DEFAULT_CAD_PATH      get_registry_string(HKEY_CURRENT_USER,_T("Software\\CD Art Display"))
+#define DEFAULT_COVER_PATH    get_folder_path(CSIDL_MYPICTURES)
+#define DEFAULT_WRITE_RATING  false
 
 // Returns a registry key's default value in UTF8.
 static char const* get_registry_string(HKEY key,LPCTSTR subkey) {
@@ -45,6 +46,11 @@ static GUID const cfg_cover_path_guid=
 { 0x68fb33a2, 0x261f, 0x4280, { 0x90, 0x29, 0x3b, 0x02, 0xfe, 0x2d, 0x75, 0xf8 } };
 cfg_string cfg_cover_path(cfg_cover_path_guid,DEFAULT_COVER_PATH);
 
+// {453c4714-7147-42a2-bae2-da0a6935a707}
+static GUID const cfg_write_rating_guid=
+{ 0x453c4714, 0x7147, 0x42a2, { 0xba, 0xe2, 0xda, 0x0a, 0x69, 0x35, 0xa7, 0x07 } };
+cfg_bool cfg_write_rating(cfg_write_rating_guid,DEFAULT_WRITE_RATING);
+
 class CDArtDisplayPreferences:public preferences_page
 {
   public:
@@ -77,6 +83,7 @@ class CDArtDisplayPreferences:public preferences_page
         cfg_cad_start=DEFAULT_CAD_START;
         cfg_cad_path=DEFAULT_CAD_PATH;
         cfg_cover_path=DEFAULT_COVER_PATH;
+        cfg_write_rating=DEFAULT_WRITE_RATING;
     }
 
     bool get_help_url(pfc::string_base & p_out) {
@@ -102,6 +109,9 @@ class CDArtDisplayPreferences:public preferences_page
 
                 path2os.convert(cfg_cover_path);
                 uSendDlgItemMessage(hWnd,IDC_COVER_PATH,WM_SETTEXT,0,reinterpret_cast<LPARAM>(path2os.get_ptr()));
+
+                // Set the stored configuration for writing the rating to tags.
+                uSendDlgItemMessage(hWnd,IDC_WRITE_RATING,BM_SETCHECK,cfg_write_rating,0);
 
                 return TRUE;
             }
@@ -144,6 +154,11 @@ class CDArtDisplayPreferences:public preferences_page
                                 cfg_cover_path=path2utf8;
                             }
                         }
+                        break;
+                    }
+                    case IDC_WRITE_RATING: {
+                        // Get the check box state and toggle the edit control accordingly.
+                        cfg_write_rating=uSendDlgItemMessage(hWnd,IDC_WRITE_RATING,BM_GETCHECK,0,0)!=0;
                         break;
                     }
                     default: {
