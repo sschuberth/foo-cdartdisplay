@@ -201,7 +201,7 @@ class CDArtDisplayInterface:public initquit,public play_callback
 
                 case IPC_SET_VOLUME: {
                     // Get the volume scale in range [0,100].
-                    float volume=static_cast<float>(wParam);
+                    LONG volume=static_cast<LONG>(wParam);
 
                     // Clamp due to mouse scroll wheel events.
                     if (volume<0) {
@@ -212,7 +212,7 @@ class CDArtDisplayInterface:public initquit,public play_callback
                     }
 
                     // Set the volume gain in dB.
-                    pbc->set_volume(volume-100.0f);
+                    pbc->set_volume(static_cast<float>(volume)-100.0f);
                     return 1;
                 }
                 case IPC_GET_VOLUME: {
