@@ -23,8 +23,7 @@
 #define FOO_PLUGIN_RELEASE      "1"
 
 #define FOO_PLUGIN_FILE         _T("foo_cdartdisplay")
-//#define FOO_WINDOW_CLASS_NAME   _T("foo_cdartdisplay_class")
-#define FOO_WINDOW_CLASS_NAME   _T("THeliumMainForm")
+#define FOO_WINDOW_CLASS_NAME   _T("foo_cdartdisplay_class")
 
 enum HeliumMessage {
     IPC_PLAY                              = 100,
