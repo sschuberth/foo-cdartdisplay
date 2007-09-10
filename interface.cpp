@@ -3,6 +3,7 @@
 extern cfg_bool cfg_cad_start;
 extern cfg_string cfg_cad_path;
 extern cfg_string cfg_cover_path;
+extern cfg_bool cfg_write_rating;
 
 DECLARE_COMPONENT_VERSION(
     FOO_PLUGIN_NAME,
@@ -136,8 +137,15 @@ class CDArtDisplayInterface:public initquit,public play_callback
     void on_playback_edited(metadb_handle_ptr p_track) {
         file_info_impl info;
         if (p_track->get_info(info)) {
-            // Map rating from range [0,5] to [0,10].
-            int rating=atoi(get_rating(info))*2;
+            // Report the rating in range [0,5].
+            int rating=atoi(get_rating(info));
+            if (rating<0) {
+                rating=0;
+            }
+            else if (rating>5) {
+                rating=5;
+            }
+
             SendMessage(m_cda_window,WM_USER,static_cast<WPARAM>(rating),IPC_RATING_CHANGED_NOTIFICATION);
         }
     }
@@ -248,8 +256,14 @@ class CDArtDisplayInterface:public initquit,public play_callback
                             int length=static_cast<int>(pbc->playback_get_length());
                             char const* path=track->get_path()+sizeof("file://")-1;
 
-                            // Map rating from range [0,5] to [0,10].
-                            int rating=atoi(get_rating(info))*2;
+                            // Report the rating in range [0,5].
+                            int rating=atoi(get_rating(info));
+                            if (rating<0) {
+                                rating=0;
+                            }
+                            else if (rating>5) {
+                                rating=5;
+                            }
 
                             // See <http://wiki.hydrogenaudio.org/index.php?title=Foobar2000:ID3_Tag_Mapping>.
                             _snprintf_s(
@@ -323,8 +337,14 @@ class CDArtDisplayInterface:public initquit,public play_callback
                             int length=static_cast<int>(pbc->playback_get_length());
                             char const* path=track->get_path()+sizeof("file://")-1;
 
-                            // Map rating from range [0,5] to [0,255].
-                            int rating=atoi(get_rating(info))*51;
+                            // Report the rating in range [0,5].
+                            int rating=atoi(get_rating(info));
+                            if (rating<0) {
+                                rating=0;
+                            }
+                            else if (rating>5) {
+                                rating=5;
+                            }
 
                             // See <http://wiki.hydrogenaudio.org/index.php?title=Foobar2000:ID3_Tag_Mapping>.
                             _snprintf_s(
@@ -426,6 +446,40 @@ class CDArtDisplayInterface:public initquit,public play_callback
                     // Check if the current order mode is any of the "Shuffle" modes.
                     GUID guid=plm->playback_order_get_guid(plm->playback_order_get_active());
                     return guid==ORDER_SHUFFLE_TRACKS || guid==ORDER_SHUFFLE_ALBUMS || guid==ORDER_SHUFFLE_DIRECTORIES;
+                }
+
+                case IPC_RATING_CHANGED_NOTIFICATION: {
+                    if (!cfg_write_rating) {
+                        return 0;
+                    }
+
+                    int rating=static_cast<int>(wParam);
+                    if (rating<0) {
+                        rating=0;
+                    }
+                    else if (rating>5) {
+                        rating=5;
+                    }
+                    char const rating_str[]={'0'+static_cast<char>(rating),'\0'};
+
+                    metadb_handle_ptr track;
+                    if (pbc->get_now_playing(track)) {
+                        file_info_impl info;
+                        if (track->get_info(info)) {
+                            track->metadb_lock();
+                            info.meta_set("RATING",rating_str);
+                            static_api_ptr_t<metadb_io_v2>()->update_info_async_simple(
+                                pfc::list_single_ref_t<metadb_handle_ptr>(track),
+                                pfc::list_single_ref_t<file_info const*>(&info),
+                                core_api::get_main_window(),
+                                metadb_io_v2::op_flag_delay_ui,
+                                NULL
+                            );
+                            track->metadb_unlock();
+                        }
+                    }
+
+                    return 1;
                 }
 
                 default: {

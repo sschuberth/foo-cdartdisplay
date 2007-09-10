@@ -60,7 +60,7 @@ enum HeliumMessage {
     IPC_GET_SHUFFLE                       = 140,
     IPC_SET_SHUFFLE                            ,
 
-    IPC_RATING_CHANGED_NOTIFICATION       = 639, // Message to send to CAD.
+    IPC_RATING_CHANGED_NOTIFICATION       = 639, // Message to both send and receive.
 
     IPC_NEW_COVER_NOTIFICATION            = 800  // Message to send to CAD (ignored).
 };
