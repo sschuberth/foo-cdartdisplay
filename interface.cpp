@@ -411,9 +411,7 @@ class CDArtDisplayInterface:public initquit,public play_callback
                 }
 
                 case IPC_CLOSE_PLAYER: {
-                    // TODO: Fix this.
-                    //static_api_ptr_t<ui_control>()->shutdown();
-                    static_api_ptr_t<user_interface>()->shutdown();
+                    standard_commands::main_exit();
                     return 1;
                 }
 
