@@ -55,7 +55,7 @@ enum HeliumMessage {
     IPC_SET_REPEAT                             ,
     IPC_SHUTDOWN_NOTIFICATION                  , // Message to send to CAD.
     IPC_GET_REPEAT                             ,
-    IPC_CLOSE_HELIUM                           ,
+    IPC_CLOSE_PLAYER                           ,
 
     IPC_GET_SHUFFLE                       = 140,
     IPC_SET_SHUFFLE                            ,

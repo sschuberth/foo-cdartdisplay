@@ -14,6 +14,8 @@ DECLARE_COMPONENT_VERSION(
 
 #include "helpers.inl"
 
+//#define VERBOSE_MESSAGE_BOXES
+
 class CDArtDisplayInterface:public initquit,public play_callback
 {
   public:
@@ -30,9 +32,7 @@ class CDArtDisplayInterface:public initquit,public play_callback
 
             s_atom=RegisterClass(&cls);
             if (!s_atom) {
-#ifndef NDEBUG
                 MessageBox(core_api::get_main_window(),_T("Unable to register the window class."),FOO_PLUGIN_FILE,MB_OK|MB_ICONERROR);
-#endif
                 return;
             }
         }
@@ -52,16 +52,14 @@ class CDArtDisplayInterface:public initquit,public play_callback
         /* lpParam      */ this
         );
         if (!m_dummy_window) {
-#ifndef NDEBUG
             MessageBox(core_api::get_main_window(),_T("Unable to create the dummy window."),FOO_PLUGIN_FILE,MB_OK|MB_ICONERROR);
-#endif
             return;
         }
 
         m_cda_window=NULL;
         ++s_instances;
 
-#ifndef NDEBUG
+#ifdef VERBOSE_MESSAGE_BOXES
         MessageBox(core_api::get_main_window(),_T("Construction was successful."),FOO_PLUGIN_FILE,MB_OK|MB_ICONINFORMATION);
 #endif
 
@@ -75,24 +73,20 @@ class CDArtDisplayInterface:public initquit,public play_callback
 
     void on_quit() {
         if (!DestroyWindow(m_dummy_window)) {
-#ifndef NDEBUG
             MessageBox(core_api::get_main_window(),_T("Unable to destroy the dummy window."),FOO_PLUGIN_FILE,MB_OK|MB_ICONERROR);
-#endif
             return;
         }
 
         if (--s_instances<=0) {
             if (!UnregisterClass(MAKEINTATOM(s_atom),NULL)) {
-#ifndef NDEBUG
                 MessageBox(core_api::get_main_window(),_T("Unable to unregister the window class."),FOO_PLUGIN_FILE,MB_OK|MB_ICONERROR);
-#endif
                 return;
             }
 
             s_atom=0;
         }
 
-#ifndef NDEBUG
+#ifdef VERBOSE_MESSAGE_BOXES
         MessageBox(core_api::get_main_window(),_T("Destruction was successful."),FOO_PLUGIN_FILE,MB_OK|MB_ICONINFORMATION);
 #endif
     }
@@ -161,8 +155,7 @@ class CDArtDisplayInterface:public initquit,public play_callback
             _this=static_cast<CDArtDisplayInterface*>(params);
             SetWindowLongA(hWnd,GWL_USERDATA,(LONG)_this);
 
-            static_api_ptr_t<play_callback_manager> pcm;
-            pcm->register_callback(
+            static_api_ptr_t<play_callback_manager>()->register_callback(
                 _this,
                 play_callback::flag_on_playback_starting  |
                 play_callback::flag_on_playback_stop      |
@@ -173,8 +166,7 @@ class CDArtDisplayInterface:public initquit,public play_callback
             );
         }
         else if (uMsg==WM_DESTROY) {
-            static_api_ptr_t<play_callback_manager> pcm;
-            pcm->unregister_callback(_this);
+            static_api_ptr_t<play_callback_manager>()->unregister_callback(_this);
             SendMessage(_this->m_cda_window,WM_USER,0,IPC_SHUTDOWN_NOTIFICATION);
         }
         else if (uMsg==WM_USER) {
@@ -383,7 +375,7 @@ class CDArtDisplayInterface:public initquit,public play_callback
                 }
 
                 case IPC_SHOW_PLAYER_WINDOW: {
-                    static_api_ptr_t<user_interface>()->activate();
+                    static_api_ptr_t<ui_control>()->activate();
                     return 1;
                 }
                 case IPC_GET_PLAYER_STATE: {
@@ -418,7 +410,9 @@ class CDArtDisplayInterface:public initquit,public play_callback
                     return guid==ORDER_REPEAT_PLAYLIST || guid==ORDER_REPEAT_TRACK;
                 }
 
-                case IPC_CLOSE_HELIUM: {
+                case IPC_CLOSE_PLAYER: {
+                    // TODO: Fix this.
+                    //static_api_ptr_t<ui_control>()->shutdown();
                     static_api_ptr_t<user_interface>()->shutdown();
                     return 1;
                 }
@@ -467,7 +461,12 @@ class CDArtDisplayInterface:public initquit,public play_callback
                         file_info_impl info;
                         if (track->get_info(info)) {
                             track->metadb_lock();
-                            info.meta_set("RATING",rating_str);
+                            if (rating>0) {
+                                info.meta_set("RATING",rating_str);
+                            }
+                            else {
+                                info.meta_remove_field("RATING");
+                            }
                             static_api_ptr_t<metadb_io_v2>()->update_info_async_simple(
                                 pfc::list_single_ref_t<metadb_handle_ptr>(track),
                                 pfc::list_single_ref_t<file_info const*>(&info),
