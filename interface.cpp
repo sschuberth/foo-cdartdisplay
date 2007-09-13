@@ -68,6 +68,16 @@ class CDArtDisplayInterface:public initquit,public play_callback
             if (WinExec(cfg_cad_path,SW_SHOWDEFAULT)<32) {
                 MessageBox(core_api::get_main_window(),_T("Unable to launch CD Art Display."),FOO_PLUGIN_FILE,MB_OK|MB_ICONERROR);
             }
+            else {
+                // Wait at most 3 seconds for the CD Art Display window to appear.
+                int i=30;
+                while (FindWindow(NULL,_T("CD Art Display"))==NULL && --i>0) {
+                    Sleep(100);
+                }
+                if (i==0) {
+                    MessageBox(core_api::get_main_window(),_T("Unable to find the CD Art Display window."),FOO_PLUGIN_FILE,MB_OK|MB_ICONWARNING);
+                }
+            }
         }
     }
 
