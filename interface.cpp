@@ -89,9 +89,21 @@ class CDArtDisplayInterface:public initquit,public play_callback
                 }
             }
         }
+
+        static_api_ptr_t<play_callback_manager>()->register_callback(
+            this,
+            play_callback::flag_on_playback_starting  |
+            play_callback::flag_on_playback_stop      |
+            play_callback::flag_on_playback_pause     |
+            play_callback::flag_on_playback_new_track |
+            play_callback::flag_on_playback_edited,
+            false
+        );
     }
 
     void on_quit() {
+        static_api_ptr_t<play_callback_manager>()->unregister_callback(this);
+
         if (!DestroyWindow(m_dummy_window)) {
             MessageBox(core_api::get_main_window(),_T("Unable to destroy the dummy window."),FOO_PLUGIN_FILE,MB_OK|MB_ICONERROR);
             return;
@@ -174,20 +186,9 @@ class CDArtDisplayInterface:public initquit,public play_callback
             LPVOID params=reinterpret_cast<CREATESTRUCT*>(lParam)->lpCreateParams;
             _this=static_cast<CDArtDisplayInterface*>(params);
             SetWindowLongA(hWnd,GWL_USERDATA,(LONG)_this);
-
-            static_api_ptr_t<play_callback_manager>()->register_callback(
-                _this,
-                play_callback::flag_on_playback_starting  |
-                play_callback::flag_on_playback_stop      |
-                play_callback::flag_on_playback_pause     |
-                play_callback::flag_on_playback_new_track |
-                play_callback::flag_on_playback_edited,
-                false
-            );
         }
         else if (uMsg==WM_DESTROY) {
             SendMessage(_this->m_cda_window,WM_USER,0,IPC_SHUTDOWN_NOTIFICATION);
-            static_api_ptr_t<play_callback_manager>()->unregister_callback(_this);
         }
         else if (uMsg==WM_USER) {
             static_api_ptr_t<playback_control> pbc;
