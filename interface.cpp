@@ -69,13 +69,21 @@ class CDArtDisplayInterface:public initquit,public play_callback
                 MessageBox(core_api::get_main_window(),_T("Unable to launch CD Art Display."),FOO_PLUGIN_FILE,MB_OK|MB_ICONERROR);
             }
             else {
-                // Wait at most 3 seconds for the CD Art Display window to appear.
-                int i=30;
-                while (FindWindow(NULL,_T("CD Art Display"))==NULL && --i>0) {
+                // Wait at most 5 seconds for CAD to register itself.
+                int i=50;
+                MSG msg;
+
+                do {
+                    // Dispatch any message in the queue.
+                    if (PeekMessage(&msg,NULL,0,0,PM_REMOVE)) {
+                        TranslateMessage(&msg);
+                        DispatchMessage(&msg);
+                    }
                     Sleep(100);
-                }
+                } while (m_cda_window==NULL && --i>0);
+
                 if (i==0) {
-                    MessageBox(core_api::get_main_window(),_T("Unable to find the CD Art Display window."),FOO_PLUGIN_FILE,MB_OK|MB_ICONWARNING);
+                    MessageBox(core_api::get_main_window(),_T("CD Art Display window did not register itself."),FOO_PLUGIN_FILE,MB_OK|MB_ICONWARNING);
                 }
             }
         }
@@ -176,8 +184,8 @@ class CDArtDisplayInterface:public initquit,public play_callback
             );
         }
         else if (uMsg==WM_DESTROY) {
-            static_api_ptr_t<play_callback_manager>()->unregister_callback(_this);
             SendMessage(_this->m_cda_window,WM_USER,0,IPC_SHUTDOWN_NOTIFICATION);
+            static_api_ptr_t<play_callback_manager>()->unregister_callback(_this);
         }
         else if (uMsg==WM_USER) {
             static_api_ptr_t<playback_control> pbc;
