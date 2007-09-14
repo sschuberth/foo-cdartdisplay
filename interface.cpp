@@ -73,14 +73,16 @@ class CDArtDisplayInterface:public initquit,public play_callback
                 int i=50;
                 MSG msg;
 
-                do {
+                while (m_cda_window==NULL && i>0) {
                     // Dispatch any message in the queue.
                     if (PeekMessage(&msg,NULL,0,0,PM_REMOVE)) {
                         TranslateMessage(&msg);
                         DispatchMessage(&msg);
                     }
+
                     Sleep(100);
-                } while (m_cda_window==NULL && --i>0);
+                    --i;
+                }
 
                 if (i==0) {
                     MessageBox(core_api::get_main_window(),_T("CD Art Display window did not register itself."),FOO_PLUGIN_FILE,MB_OK|MB_ICONWARNING);
