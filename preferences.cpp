@@ -8,7 +8,7 @@
 #define DEFAULT_COVER_PATH    get_folder_path(CSIDL_MYPICTURES)
 #define DEFAULT_WRITE_RATING  false
 
-// Returns a registry key's default value in UTF8.
+// Returns a registry key's default value in UTF-8.
 static char const* get_registry_string(HKEY key,LPCTSTR subkey) {
     TCHAR path[MAX_PATH];
     LONG size=MAX_PATH;
@@ -21,7 +21,7 @@ static char const* get_registry_string(HKEY key,LPCTSTR subkey) {
     return path_utf8;
 }
 
-// Returns a system folder path in UTF8.
+// Returns a system folder path in UTF-8.
 static char const* get_folder_path(int folder) {
     TCHAR path[MAX_PATH];
     SHGetFolderPath(NULL,folder,NULL,SHGFP_TYPE_CURRENT,path);
@@ -117,7 +117,7 @@ class CDArtDisplayPreferences:public preferences_page
             }
             case WM_COMMAND: {
                 // Get all edit control string in the OS' format and convert them
-                // to UTF8 for foobar2000.
+                // to UTF-8 for foobar2000.
                 static pfc::stringcvt::string_utf8_from_os path2utf8;
 
                 TCHAR path[MAX_PATH];
