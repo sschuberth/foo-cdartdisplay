@@ -139,7 +139,9 @@ class CDArtDisplayInterface:public initquit,public play_callback
             SendMessage(m_cda_window,WM_USER,static_cast<WPARAM>(HS_PAUSED),IPC_PLAYER_STATE_CHANGED_NOTIFICATION);
         }
         else {
-            if (p_command==play_control::track_command_play || p_command==play_control::track_command_resume) {
+            if (p_command==play_control::track_command_play
+             || p_command==play_control::track_command_resume
+             || p_command==play_control::track_command_settrack) {
                 SendMessage(m_cda_window,WM_USER,static_cast<WPARAM>(HS_PLAYING),IPC_PLAYER_STATE_CHANGED_NOTIFICATION);
             }
         }
