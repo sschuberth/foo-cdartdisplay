@@ -192,6 +192,29 @@ class CDArtDisplayInterface:public initquit,public play_callback
         else if (uMsg==WM_DESTROY) {
             SendMessage(_this->m_cda_window,WM_USER,0,IPC_SHUTDOWN_NOTIFICATION);
         }
+        else if (uMsg==WM_COPYDATA) {
+            if (!_this) {
+                return 0;
+            }
+
+            PCOPYDATASTRUCT cds=reinterpret_cast<PCOPYDATASTRUCT>(lParam);
+
+            static char buffer[MAX_PATH];
+            ZeroMemory(buffer,sizeof(buffer));
+
+            if (cds->cbData>=sizeof(buffer)-1) {
+                cds->cbData=sizeof(buffer)-1;
+            }
+            strncpy_s(buffer,static_cast<char const*>(cds->lpData),cds->cbData);
+
+            static_api_ptr_t<playlist_manager> plm;
+            if (cds->dwData==IPC_ADDFILE_PLAY_PLAYLIST) {
+                return plm->activeplaylist_add_locations(pfc::list_single_ref_t<char const*>(buffer),true,_this->m_cda_window);
+            }
+            else if (cds->dwData==IPC_ADDFILE_QUEUE_PLAYLIST) {
+                return plm->activeplaylist_add_locations(pfc::list_single_ref_t<char const*>(buffer),false,_this->m_cda_window);
+            }
+        }
         else if (uMsg==WM_USER) {
             static_api_ptr_t<playback_control> pbc;
             static_api_ptr_t<playlist_manager> plm;
@@ -269,7 +292,10 @@ class CDArtDisplayInterface:public initquit,public play_callback
                             number=number_buf;
 
                             int length=static_cast<int>(pbc->playback_get_length());
-                            char const* path=track->get_path()+sizeof("file://")-1;
+                            char const* path=track->get_path();
+                            if (pfc::string_find_first(path,"file://")==0) {
+                                path+=sizeof("file://")-1;
+                            }
 
                             // Report the rating in range [0,5].
                             int rating=atoi(get_rating(info));
@@ -350,7 +376,10 @@ class CDArtDisplayInterface:public initquit,public play_callback
                         file_info_impl info;
                         if (track->get_info(info)) {
                             int length=static_cast<int>(pbc->playback_get_length());
-                            char const* path=track->get_path()+sizeof("file://")-1;
+                            char const* path=track->get_path();
+                            if (pfc::string_find_first(path,"file://")==0) {
+                                path+=sizeof("file://")-1;
+                            }
 
                             // Report the rating in range [0,5].
                             int rating=atoi(get_rating(info));
@@ -398,7 +427,13 @@ class CDArtDisplayInterface:public initquit,public play_callback
                 }
 
                 case IPC_SHOW_PLAYER_WINDOW: {
-                    static_api_ptr_t<ui_control>()->activate();
+                    static_api_ptr_t<ui_control> uic;
+                    if (uic->is_visible()) {
+                        uic->hide();
+                    }
+                    else {
+                        uic->activate();
+                    }
                     return 1;
                 }
                 case IPC_GET_PLAYER_STATE: {
@@ -463,6 +498,9 @@ class CDArtDisplayInterface:public initquit,public play_callback
                     return guid==ORDER_SHUFFLE_TRACKS || guid==ORDER_SHUFFLE_ALBUMS || guid==ORDER_SHUFFLE_DIRECTORIES;
                 }
 
+                // For compatibility with Helium.
+                case IPC_SET_RATING:
+
                 case IPC_RATING_CHANGED_NOTIFICATION: {
                     if (!cfg_write_rating) {
                         return 0;
@@ -500,6 +538,33 @@ class CDArtDisplayInterface:public initquit,public play_callback
                     }
 
                     return 1;
+                }
+
+                case IPC_GET_CURRENT_LYRICS: {
+                    if (!_this) {
+                        return 0;
+                    }
+
+                    // Copy the information to a buffer.
+                    static char buffer[16384];
+                    ZeroMemory(buffer,sizeof(buffer));
+
+                    metadb_handle_ptr track;
+                    if (plm->activeplaylist_get_item_handle(track,static_cast<t_size>(wParam))) {
+                        file_info_impl info;
+                        if (track->get_info(info)) {
+                            char const* lyrics=info.meta_get("UNSYNCEDLYRICS",0);
+                            pfc::strcpy_utf8_truncate(lyrics,buffer,sizeof(buffer)-1);
+                        }
+                    }
+
+                    // Pass the buffer to CDA.
+                    static COPYDATASTRUCT cds;
+                    cds.dwData=IPC_GET_CURRENT_LYRICS;
+                    cds.cbData=pfc::strlen_utf8(buffer);
+                    cds.lpData=buffer;
+
+                    return SendMessage(_this->m_cda_window,WM_COPYDATA,reinterpret_cast<WPARAM>(hWnd),reinterpret_cast<LPARAM>(&cds));
                 }
 
                 default: {

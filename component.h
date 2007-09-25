@@ -56,13 +56,17 @@ enum HeliumMessage {
     IPC_SHUTDOWN_NOTIFICATION                  , // Message to send to CAD.
     IPC_GET_REPEAT                             ,
     IPC_CLOSE_PLAYER                           ,
+    IPC_SET_RATING                             , // See IPC_RATING_CHANGED_NOTIFICATION.
 
     IPC_GET_SHUFFLE                       = 140,
     IPC_SET_SHUFFLE                            ,
 
     IPC_RATING_CHANGED_NOTIFICATION       = 639, // Message to both send and receive.
 
-    IPC_NEW_COVER_NOTIFICATION            = 800  // Message to send to CAD (ignored).
+    IPC_NEW_COVER_NOTIFICATION            = 800, // Message to send to CAD (ignored).
+    IPC_GET_CURRENT_LYRICS                     ,
+    IPC_ADDFILE_PLAY_PLAYLIST                  ,
+    IPC_ADDFILE_QUEUE_PLAYLIST
 };
 
 enum HeliumState {
