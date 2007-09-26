@@ -209,7 +209,14 @@ class CDArtDisplayInterface:public initquit,public play_callback
 
             static_api_ptr_t<playlist_manager> plm;
             if (cds->dwData==IPC_ADDFILE_PLAY_PLAYLIST) {
-                return plm->activeplaylist_add_locations(pfc::list_single_ref_t<char const*>(buffer),true,_this->m_cda_window);
+                if (plm->activeplaylist_add_locations(pfc::list_single_ref_t<char const*>(buffer),false,_this->m_cda_window)) {
+                    // Newly added files come last in the playlist.
+                    t_size item=plm->activeplaylist_get_item_count()-1;
+
+                    // TODO: Find a way to make this work if playback is not the default action.
+                    return plm->activeplaylist_execute_default_action(item);
+                }
+                return 0;
             }
             else if (cds->dwData==IPC_ADDFILE_QUEUE_PLAYLIST) {
                 return plm->activeplaylist_add_locations(pfc::list_single_ref_t<char const*>(buffer),false,_this->m_cda_window);
@@ -359,8 +366,7 @@ class CDArtDisplayInterface:public initquit,public play_callback
                 }
                 case IPC_SET_LIST_POS: {
                     // TODO: Find a way to make this work if playback is not the default action.
-                    plm->activeplaylist_execute_default_action(static_cast<t_size>(wParam));
-                    return 1;
+                    return plm->activeplaylist_execute_default_action(static_cast<t_size>(wParam));
                 }
                 case IPC_GET_LIST_ITEM: {
                     if (!_this) {
