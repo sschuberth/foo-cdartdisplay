@@ -30,7 +30,7 @@ static t_size get_playback_order_index(static_api_ptr_t<playlist_manager>& plm,G
             return i;
         }
     }
-    return static_cast<t_size>(infinite);
+    return infinite_size;
 }
 
 // Returns an empty string instead of NULL for invalid meta data.
