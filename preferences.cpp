@@ -5,7 +5,6 @@
 
 #define DEFAULT_CAD_START     true
 #define DEFAULT_CAD_PATH      get_registry_string(HKEY_CURRENT_USER,_T("Software\\CD Art Display"))
-#define DEFAULT_COVER_PATH    get_folder_path(CSIDL_MYPICTURES)
 #define DEFAULT_WRITE_RATING  false
 
 // Returns a registry key's default value in UTF-8.
@@ -21,16 +20,6 @@ static char const* get_registry_string(HKEY key,LPCTSTR subkey) {
     return path_utf8;
 }
 
-// Returns a system folder path in UTF-8.
-static char const* get_folder_path(int folder) {
-    TCHAR path[MAX_PATH];
-    SHGetFolderPath(NULL,folder,NULL,SHGFP_TYPE_CURRENT,path);
-
-    static pfc::stringcvt::string_utf8_from_wide path_utf8;
-    path_utf8.convert(path);
-    return path_utf8;
-}
-
 // {7cef938b-1b5f-4fe5-a8ca-a1711f6de31c}
 static GUID const cfg_cad_start_guid=
 { 0x7cef938b, 0x1b5f, 0x4fe5, { 0xa8, 0xca, 0xa1, 0x71, 0x1f, 0x6d, 0xe3, 0x1c } };
@@ -40,11 +29,6 @@ cfg_bool cfg_cad_start(cfg_cad_start_guid,DEFAULT_CAD_START);
 static GUID const cfg_cad_path_guid=
 { 0x33b397c7, 0x8e79, 0x4302, { 0xb5, 0xaf, 0x05, 0x8a, 0x26, 0x9d, 0x0e, 0x4d } };
 cfg_string cfg_cad_path(cfg_cad_path_guid,DEFAULT_CAD_PATH);
-
-// {68fb33a2-261f-4280-9029-3b02fe2d75f8}
-static GUID const cfg_cover_path_guid=
-{ 0x68fb33a2, 0x261f, 0x4280, { 0x90, 0x29, 0x3b, 0x02, 0xfe, 0x2d, 0x75, 0xf8 } };
-cfg_string cfg_cover_path(cfg_cover_path_guid,DEFAULT_COVER_PATH);
 
 // {453c4714-7147-42a2-bae2-da0a6935a707}
 static GUID const cfg_write_rating_guid=
@@ -82,7 +66,6 @@ class CDArtDisplayPreferences:public preferences_page
     void reset() {
         cfg_cad_start=DEFAULT_CAD_START;
         cfg_cad_path=DEFAULT_CAD_PATH;
-        cfg_cover_path=DEFAULT_COVER_PATH;
         cfg_write_rating=DEFAULT_WRITE_RATING;
     }
 
@@ -106,9 +89,6 @@ class CDArtDisplayPreferences:public preferences_page
 
                 path2os.convert(cfg_cad_path);
                 uSendDlgItemMessage(hWnd,IDC_CAD_PATH,WM_SETTEXT,0,reinterpret_cast<LPARAM>(path2os.get_ptr()));
-
-                path2os.convert(cfg_cover_path);
-                uSendDlgItemMessage(hWnd,IDC_COVER_PATH,WM_SETTEXT,0,reinterpret_cast<LPARAM>(path2os.get_ptr()));
 
                 // Set the stored configuration for writing the rating to tags.
                 uSendDlgItemMessage(hWnd,IDC_WRITE_RATING,BM_SETCHECK,cfg_write_rating,0);
@@ -139,19 +119,6 @@ class CDArtDisplayPreferences:public preferences_page
                             else if (result>0) {
                                 path2utf8.convert(path);
                                 cfg_cad_path=path2utf8;
-                            }
-                        }
-                        break;
-                    }
-                    case IDC_COVER_PATH: {
-                        if (HIWORD(wParam)==EN_CHANGE) {
-                            result=uSendDlgItemMessage(hWnd,IDC_COVER_PATH,WM_GETTEXT,MAX_PATH,reinterpret_cast<LPARAM>(path));
-                            if (result==0) {
-                                cfg_cover_path.reset();
-                            }
-                            else if (result>0) {
-                                path2utf8.convert(path);
-                                cfg_cover_path=path2utf8;
                             }
                         }
                         break;

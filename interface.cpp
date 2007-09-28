@@ -2,7 +2,6 @@
 
 extern cfg_bool cfg_cad_start;
 extern cfg_string cfg_cad_path;
-extern cfg_string cfg_cover_path;
 extern cfg_bool cfg_write_rating;
 
 DECLARE_COMPONENT_VERSION(
@@ -313,11 +312,13 @@ class CDArtDisplayInterface:public initquit,public play_callback
                                 rating=5;
                             }
 
+                            pfc::string_directory* cfg_cad_root=new pfc::string_directory(cfg_cad_path);
+
                             // See <http://wiki.hydrogenaudio.org/index.php?title=Foobar2000:ID3_Tag_Mapping>.
                             _snprintf_s(
                                 buffer,
                                 _TRUNCATE,
-                                "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%d\t%s\t%d\t%s\t%s\t%s\t%s\t%s\t%s\t%s",
+                                "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%d\t%s\t%d\t%s%s\t%s\t%s\t%s\t%s\t%s\t%s",
                                 get_meta(info,"TITLE"),
                                 get_meta(info,"ARTIST"),
                                 get_meta(info,"ALBUM"),
@@ -328,7 +329,8 @@ class CDArtDisplayInterface:public initquit,public play_callback
                                 length,
                                 path,
                                 rating,
-                                cfg_cover_path.get_ptr(),
+                                (char const*)(*cfg_cad_root),
+                                "\\Skins\\Default\\nocover.png",
                                 get_meta(info,"COMPOSER"),
                                 get_meta(info,"LYRICIST"),
                                 get_meta(info,"PUBLISHER"),
@@ -336,6 +338,8 @@ class CDArtDisplayInterface:public initquit,public play_callback
                                 get_meta(info,"PRODUCER"),
                                 get_meta(info,"COPYRIGHT")
                             );
+
+                            delete cfg_cad_root;
                         }
                     }
 

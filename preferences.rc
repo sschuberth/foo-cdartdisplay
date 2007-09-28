@@ -59,10 +59,8 @@ BEGIN
     CONTROL         "Start CD Art Display together with foobar2000:",IDC_CAD_START,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,6,6,162,8
     EDITTEXT        IDC_CAD_PATH,18,18,252,12,ES_AUTOHSCROLL
-    LTEXT           "Global cover directory to report to CD Art Display:",IDC_COVER_LABEL,6,42,162,8
-    EDITTEXT        IDC_COVER_PATH,18,54,252,14,ES_AUTOHSCROLL
     CONTROL         "Write CD Art Display ratings to file tags",IDC_WRITE_RATING,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,6,78,138,10
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,6,36,138,10
 END
 
 
