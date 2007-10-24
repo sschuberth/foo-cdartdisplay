@@ -68,8 +68,8 @@ class CDArtDisplayInterface:public initquit,public play_callback
                 MessageBox(core_api::get_main_window(),_T("Unable to launch CD Art Display."),FOO_PLUGIN_FILE,MB_OK|MB_ICONERROR);
             }
             else {
-                // Wait at most 5 seconds for CAD to register itself.
-                int i=50;
+                // Wait at most 10 seconds for CAD to register itself.
+                int i=100;
                 MSG msg;
 
                 while (m_cda_window==NULL && i>0) {
@@ -84,7 +84,7 @@ class CDArtDisplayInterface:public initquit,public play_callback
                 }
 
                 if (i==0) {
-                    MessageBox(core_api::get_main_window(),_T("CD Art Display window did not register itself."),FOO_PLUGIN_FILE,MB_OK|MB_ICONWARNING);
+                    MessageBox(core_api::get_main_window(),_T("Timeout while waiting for the CD Art Display window to register itself."),FOO_PLUGIN_FILE,MB_OK|MB_ICONWARNING);
                 }
             }
         }
