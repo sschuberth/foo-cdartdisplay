@@ -64,12 +64,33 @@ class CDArtDisplayInterface:public initquit,public play_callback
 
         // If enabled, start CAD with foobar2000.
         if (cfg_cad_start) {
-            if (WinExec(cfg_cad_path,SW_SHOWDEFAULT)<32) {
+            // Get the foobar2000 configuration strings and convert them to the
+            // OS' format.
+            static pfc::stringcvt::string_os_from_utf8 path2os;
+            path2os.convert(cfg_cad_path);
+
+            static STARTUPINFO si={0};
+            static PROCESS_INFORMATION pi;
+
+            BOOL result=CreateProcess(
+                path2os,
+                _T(" foobar2000"),
+                NULL,
+                NULL,
+                FALSE,
+                NORMAL_PRIORITY_CLASS,
+                NULL,
+                NULL,
+                &si,
+                &pi
+            );
+
+            if (!result) {
                 MessageBox(core_api::get_main_window(),_T("Unable to launch CD Art Display."),FOO_PLUGIN_FILE,MB_OK|MB_ICONERROR);
             }
             else {
-                // Wait at most 10 seconds for CAD to register itself.
-                int i=100;
+                // Wait at most 5 seconds for CAD to register itself.
+                int i=50;
                 MSG msg;
 
                 while (m_cda_window==NULL && i>0) {
