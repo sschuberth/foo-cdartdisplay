@@ -86,8 +86,8 @@ class CDArtDisplayPreferences:public preferences_page
                 // Get the foobar2000 configuration strings and convert them to
                 // the OS' format.
                 static pfc::stringcvt::string_os_from_utf8 path2os;
-
                 path2os.convert(cfg_cad_path);
+
                 uSendDlgItemMessage(hWnd,IDC_CAD_PATH,WM_SETTEXT,0,reinterpret_cast<LPARAM>(path2os.get_ptr()));
 
                 // Set the stored configuration for writing the rating to tags.
