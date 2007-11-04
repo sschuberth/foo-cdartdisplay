@@ -82,7 +82,7 @@ class CDArtDisplayInterface:public initquit,public play_callback
                 NULL,
                 NULL,
                 FALSE,
-                NORMAL_PRIORITY_CLASS,
+                0,
                 NULL,
                 NULL,
                 &si,
