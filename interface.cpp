@@ -64,17 +64,21 @@ class CDArtDisplayInterface:public initquit,public play_callback
 
         // If enabled, start CAD with foobar2000.
         if (cfg_cad_start) {
+            pfc::string8 cmd_line("\"");
+            cmd_line+=cfg_cad_path;
+            cmd_line+="\" foobar2000";
+
             // Get the foobar2000 configuration strings and convert them to the
             // OS' format.
             static pfc::stringcvt::string_os_from_utf8 path2os;
-            path2os.convert(cfg_cad_path);
+            path2os.convert(cmd_line);
 
             static STARTUPINFO si={0};
             static PROCESS_INFORMATION pi;
 
             BOOL result=CreateProcess(
-                path2os,
-                _T(" foobar2000"),
+                NULL,
+                const_cast<LPWSTR>(path2os.get_ptr()),
                 NULL,
                 NULL,
                 FALSE,
