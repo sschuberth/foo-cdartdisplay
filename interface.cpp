@@ -5,9 +5,9 @@ extern cfg_string cfg_cad_path;
 extern cfg_bool cfg_write_rating;
 
 DECLARE_COMPONENT_VERSION(
-    FOO_PLUGIN_NAME,
-    FOO_TARGET_CAD_VERSION " " FOO_PLUGIN_STATE " " FOO_PLUGIN_RELEASE,
-    "Message handling plug-in to interface with CD Art Display <http://www.cdartdisplay.com/>.\n"
+    FOO_COMP_NAME,
+    FOO_COMP_VERSION " " FOO_COMP_STATE " " FOO_COMP_RELEASE,
+    "Message handling component to interface with CD Art Display <http://www.cdartdisplay.com/>.\n"
     "Compiled on " __DATE__ ", Copyright 2007 by eyebex <eyebex@threekings.tk>."
 );
 
@@ -27,11 +27,11 @@ class CDArtDisplayInterface:public initquit,public play_callback
             cls.lpfnWndProc=WindowProc;
             cls.hInstance=core_api::get_my_instance();
             cls.hCursor=LoadCursor(NULL,IDC_ARROW);
-            cls.lpszClassName=FOO_WINDOW_CLASS_NAME;
+            cls.lpszClassName=FOO_COMP_CLASS;
 
             s_atom=RegisterClass(&cls);
             if (!s_atom) {
-                MessageBox(core_api::get_main_window(),_T("Unable to register the window class."),FOO_PLUGIN_FILE,MB_OK|MB_ICONERROR);
+                MessageBox(core_api::get_main_window(),_T("Unable to register the window class."),FOO_COMP_FILE,MB_OK|MB_ICONERROR);
                 return;
             }
         }
@@ -39,7 +39,7 @@ class CDArtDisplayInterface:public initquit,public play_callback
         // Create a dummy window.
         m_dummy_window=CreateWindow(
         /* lpClassName  */ MAKEINTATOM(s_atom),
-        /* lpWindowName */ FOO_PLUGIN_FILE,
+        /* lpWindowName */ FOO_COMP_FILE,
         /* dwStyle      */ 0,
         /* x            */ 0,
         /* y            */ 0,
@@ -51,7 +51,7 @@ class CDArtDisplayInterface:public initquit,public play_callback
         /* lpParam      */ this
         );
         if (!m_dummy_window) {
-            MessageBox(core_api::get_main_window(),_T("Unable to create the dummy window."),FOO_PLUGIN_FILE,MB_OK|MB_ICONERROR);
+            MessageBox(core_api::get_main_window(),_T("Unable to create the dummy window."),FOO_COMP_FILE,MB_OK|MB_ICONERROR);
             return;
         }
 
@@ -59,7 +59,7 @@ class CDArtDisplayInterface:public initquit,public play_callback
         ++s_instances;
 
 #ifdef VERBOSE_MESSAGE_BOXES
-        MessageBox(core_api::get_main_window(),_T("Construction was successful."),FOO_PLUGIN_FILE,MB_OK|MB_ICONINFORMATION);
+        MessageBox(core_api::get_main_window(),_T("Construction was successful."),FOO_COMP_FILE,MB_OK|MB_ICONINFORMATION);
 #endif
 
         // If enabled, start CAD with foobar2000.
@@ -90,7 +90,7 @@ class CDArtDisplayInterface:public initquit,public play_callback
             );
 
             if (!result) {
-                MessageBox(core_api::get_main_window(),_T("Unable to launch CD Art Display."),FOO_PLUGIN_FILE,MB_OK|MB_ICONERROR);
+                MessageBox(core_api::get_main_window(),_T("Unable to launch CD Art Display."),FOO_COMP_FILE,MB_OK|MB_ICONERROR);
             }
             else {
                 // Wait at most 5 seconds for CAD to register itself.
@@ -109,7 +109,7 @@ class CDArtDisplayInterface:public initquit,public play_callback
                 }
 
                 if (i==0) {
-                    MessageBox(core_api::get_main_window(),_T("Timeout while waiting for the CD Art Display window to register itself."),FOO_PLUGIN_FILE,MB_OK|MB_ICONWARNING);
+                    MessageBox(core_api::get_main_window(),_T("Timeout while waiting for the CD Art Display window to register itself."),FOO_COMP_FILE,MB_OK|MB_ICONWARNING);
                 }
             }
         }
@@ -130,13 +130,13 @@ class CDArtDisplayInterface:public initquit,public play_callback
         static_api_ptr_t<play_callback_manager>()->unregister_callback(this);
 
         if (!DestroyWindow(m_dummy_window)) {
-            MessageBox(core_api::get_main_window(),_T("Unable to destroy the dummy window."),FOO_PLUGIN_FILE,MB_OK|MB_ICONERROR);
+            MessageBox(core_api::get_main_window(),_T("Unable to destroy the dummy window."),FOO_COMP_FILE,MB_OK|MB_ICONERROR);
             return;
         }
 
         if (--s_instances<=0) {
             if (!UnregisterClass(MAKEINTATOM(s_atom),NULL)) {
-                MessageBox(core_api::get_main_window(),_T("Unable to unregister the window class."),FOO_PLUGIN_FILE,MB_OK|MB_ICONERROR);
+                MessageBox(core_api::get_main_window(),_T("Unable to unregister the window class."),FOO_COMP_FILE,MB_OK|MB_ICONERROR);
                 return;
             }
 
@@ -144,7 +144,7 @@ class CDArtDisplayInterface:public initquit,public play_callback
         }
 
 #ifdef VERBOSE_MESSAGE_BOXES
-        MessageBox(core_api::get_main_window(),_T("Destruction was successful."),FOO_PLUGIN_FILE,MB_OK|MB_ICONINFORMATION);
+        MessageBox(core_api::get_main_window(),_T("Destruction was successful."),FOO_COMP_FILE,MB_OK|MB_ICONINFORMATION);
 #endif
     }
 

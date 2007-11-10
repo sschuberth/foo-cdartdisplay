@@ -18,13 +18,13 @@
 #include <foobar2000/SDK/foobar2000.h>
 #pragma warning(pop)
 
-#define FOO_PLUGIN_NAME         "CD Art Display Interface"
-#define FOO_TARGET_CAD_VERSION  "2.0"
-#define FOO_PLUGIN_STATE        "beta"
-#define FOO_PLUGIN_RELEASE      "1"
+#define FOO_COMP_NAME     "CD Art Display Interface"
+#define FOO_COMP_VERSION  "2.0"  // This always matches the targetted CAD version number.
+#define FOO_COMP_STATE    "beta"
+#define FOO_COMP_RELEASE  "1"    // This is incremented for each public release.
 
-#define FOO_PLUGIN_FILE         _T("foo_cdartdisplay")
-#define FOO_WINDOW_CLASS_NAME   _T("foo_cdartdisplay_class")
+#define FOO_COMP_FILE     _T("foo_cdartdisplay")
+#define FOO_COMP_CLASS    _T("foo_cdartdisplay_class")
 
 enum HeliumMessage {
     IPC_PLAY                              = 100,
