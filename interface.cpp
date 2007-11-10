@@ -6,7 +6,7 @@ extern cfg_bool cfg_write_rating;
 
 DECLARE_COMPONENT_VERSION(
     FOO_PLUGIN_NAME,
-    FOO_TARGET_CAD_VERSION " release " FOO_PLUGIN_RELEASE,
+    FOO_TARGET_CAD_VERSION " " FOO_PLUGIN_STATE " " FOO_PLUGIN_RELEASE,
     "Message handling plug-in to interface with CD Art Display <http://www.cdartdisplay.com/>.\n"
     "Compiled on " __DATE__ ", Copyright 2007 by eyebex <eyebex@threekings.tk>."
 );

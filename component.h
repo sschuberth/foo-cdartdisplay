@@ -20,6 +20,7 @@
 
 #define FOO_PLUGIN_NAME         "CD Art Display Interface"
 #define FOO_TARGET_CAD_VERSION  "2.0"
+#define FOO_PLUGIN_STATE        "beta"
 #define FOO_PLUGIN_RELEASE      "1"
 
 #define FOO_PLUGIN_FILE         _T("foo_cdartdisplay")
