@@ -32,29 +32,3 @@ static t_size get_playback_order_index(static_api_ptr_t<playlist_manager>& plm,G
     }
     return infinite_size;
 }
-
-// Returns an empty string instead of NULL for invalid meta data.
-static char const* get_meta(file_info_impl const& info,char const* name) {
-    static char const empty[]="\0";
-    char const* value=info.meta_get(name,0);
-    if (!value) {
-        value=empty;
-    }
-    return value;
-}
-
-// Returns a zero rating instead of NULL for unavailable rating data.
-static char const* get_rating(file_info_impl const& info) {
-    static char const empty[]="0";
-    char const* rating=info.meta_get("RATING",0);
-    if (!rating) {
-        rating=info.meta_get("TRACKRATING",0);
-    }
-    if (!rating) {
-        rating=info.meta_get("ALBUMRATING",0);
-    }
-    if (!rating) {
-        rating=empty;
-    }
-    return rating;
-}

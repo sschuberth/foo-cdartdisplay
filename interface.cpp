@@ -120,7 +120,8 @@ class CDArtDisplayInterface:public initquit,public play_callback
             play_callback::flag_on_playback_stop      |
             play_callback::flag_on_playback_pause     |
             play_callback::flag_on_playback_new_track |
-            play_callback::flag_on_playback_edited,
+            play_callback::flag_on_playback_edited    |
+            play_callback::flag_on_playback_dynamic_info_track,
             false
         );
     }
@@ -152,7 +153,6 @@ class CDArtDisplayInterface:public initquit,public play_callback
 
     void on_playback_seek(double p_time) {}
     void on_playback_dynamic_info(const file_info & p_info) {}
-    void on_playback_dynamic_info_track(const file_info & p_info) {}
     void on_playback_time(double p_time) {}
     void on_volume_change(float p_new_val) {}
 
@@ -187,20 +187,29 @@ class CDArtDisplayInterface:public initquit,public play_callback
     }
 
     void on_playback_edited(metadb_handle_ptr p_track) {
-        file_info_impl info;
-        if (p_track->get_info(info)) {
-            // Report the rating in range [0,5].
-            int rating=atoi(get_rating(info));
-            if (rating<0) {
-                rating=0;
-            }
-            else if (rating>5) {
-                rating=5;
-            }
+        service_ptr_t<titleformat_object> script;
 
-            SendMessage(m_cda_window,WM_USER,static_cast<WPARAM>(rating),IPC_RATING_CHANGED_NOTIFICATION);
+        // See <http://wiki.hydrogenaudio.org/index.php?title=Foobar2000:Titleformat_Reference>.
+        pfc::string8 format=
+            "$min($max(0,%rating%),5)"
+        ;
+
+        if (static_api_ptr_t<titleformat_compiler>()->compile(script,format)) {
+            static_api_ptr_t<playback_control>()->playback_format_title_ex(p_track,NULL,format,script,NULL,playback_control::display_level_titles);
         }
+
+        // Report the rating in range [0,5].
+        int rating=atoi(format);
+        SendMessage(m_cda_window,WM_USER,static_cast<WPARAM>(rating),IPC_RATING_CHANGED_NOTIFICATION);
     }
+
+    #pragma warning(disable:4100)
+
+    void on_playback_dynamic_info_track(file_info const& p_info) {
+        SendMessage(m_cda_window,WM_USER,0,IPC_TRACK_CHANGED_NOTIFICATION);
+    }
+
+    #pragma warning(default:4100)
 
   private:
 
@@ -310,62 +319,50 @@ class CDArtDisplayInterface:public initquit,public play_callback
 
                     metadb_handle_ptr track;
                     if (pbc->get_now_playing(track)) {
-                        file_info_impl info;
-                        if (track->get_info(info)) {
-                            // If there is no track number, do not return a NULL string.
-                            static char number_buf[8];
-                            ZeroMemory(number_buf,sizeof(number_buf));
-                            char const* number=info.meta_get("TRACKNUMBER",0);
-                            if (number) {
-                                // Get rid of the total number of tracks if present.
-                                _snprintf_s(number_buf,_TRUNCATE,"%d",atoi(number));
-                            }
-                            number=number_buf;
+                        service_ptr_t<titleformat_object> script;
 
-                            int length=static_cast<int>(pbc->playback_get_length());
-                            char const* path=track->get_path();
-                            if (pfc::string_find_first(path,"file://")==0) {
-                                path+=sizeof("file://")-1;
-                            }
+                        // See <http://wiki.hydrogenaudio.org/index.php?title=Foobar2000:Titleformat_Reference>.
+                        pfc::string8 format1=
+                            "[%title%]"                "\t"
+                            "[%artist%]"               "\t"
+                            "[%album%]"                "\t"
+                            "[%genre%]"                "\t"
+                            "[%date%]"                 "\t"
+                            "[%comment%]"              "\t"
+                            "$num(%tracknumber%,0)"    "\t"
+                            "%length_seconds%"         "\t"
+                            "%path%"                   "\t"
+                            "$min($max(0,%rating%),5)"
+                        ;
+                        pfc::string8 format2=
+                            "[%composer%]"             "\t"
+                            "[%lyricist%]"             "\t"
+                            "[%publisher%]"            "\t"
+                            "[%conductor%]"            "\t"
+                            "[%producer%]"             "\t"
+                            "[%copyright%]"
+                        ;
 
-                            // Report the rating in range [0,5].
-                            int rating=atoi(get_rating(info));
-                            if (rating<0) {
-                                rating=0;
-                            }
-                            else if (rating>5) {
-                                rating=5;
-                            }
-
-                            pfc::string_directory* cfg_cad_root=new pfc::string_directory(cfg_cad_path);
-
-                            // See <http://wiki.hydrogenaudio.org/index.php?title=Foobar2000:ID3_Tag_Mapping>.
-                            _snprintf_s(
-                                buffer,
-                                _TRUNCATE,
-                                "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%d\t%s\t%d\t%s%s\t%s\t%s\t%s\t%s\t%s\t%s",
-                                get_meta(info,"TITLE"),
-                                get_meta(info,"ARTIST"),
-                                get_meta(info,"ALBUM"),
-                                get_meta(info,"GENRE"),
-                                get_meta(info,"DATE"),
-                                get_meta(info,"COMMENT"),
-                                number,
-                                length,
-                                path,
-                                rating,
-                                (char const*)(*cfg_cad_root),
-                                "\\Skins\\Default\\nocover.png",
-                                get_meta(info,"COMPOSER"),
-                                get_meta(info,"LYRICIST"),
-                                get_meta(info,"PUBLISHER"),
-                                get_meta(info,"CONDUCTOR"),
-                                get_meta(info,"PRODUCER"),
-                                get_meta(info,"COPYRIGHT")
-                            );
-
-                            delete cfg_cad_root;
+                        if (static_api_ptr_t<titleformat_compiler>()->compile(script,format1)) {
+                            pbc->playback_format_title_ex(track,NULL,format1,script,NULL,playback_control::display_level_titles);
                         }
+                        if (static_api_ptr_t<titleformat_compiler>()->compile(script,format2)) {
+                            pbc->playback_format_title_ex(track,NULL,format2,script,NULL,playback_control::display_level_titles);
+                        }
+
+                        pfc::string_directory* cfg_cad_root=new pfc::string_directory(cfg_cad_path);
+
+                        _snprintf_s(
+                            buffer,
+                            _TRUNCATE,
+                            "%s\t%s%s\t%s",
+                            format1.get_ptr(),
+                            (char const*)(*cfg_cad_root),
+                            "\\Skins\\Default\\nocover.png",
+                            format2.get_ptr()
+                        );
+
+                        delete cfg_cad_root;
                     }
 
                     // Pass the buffer to CDA.
@@ -408,35 +405,27 @@ class CDArtDisplayInterface:public initquit,public play_callback
 
                     metadb_handle_ptr track;
                     if (plm->activeplaylist_get_item_handle(track,static_cast<t_size>(wParam))) {
-                        file_info_impl info;
-                        if (track->get_info(info)) {
-                            int length=static_cast<int>(pbc->playback_get_length());
-                            char const* path=track->get_path();
-                            if (pfc::string_find_first(path,"file://")==0) {
-                                path+=sizeof("file://")-1;
-                            }
+                        service_ptr_t<titleformat_object> script;
 
-                            // Report the rating in range [0,5].
-                            int rating=atoi(get_rating(info));
-                            if (rating<0) {
-                                rating=0;
-                            }
-                            else if (rating>5) {
-                                rating=5;
-                            }
+                        // See <http://wiki.hydrogenaudio.org/index.php?title=Foobar2000:Titleformat_Reference>.
+                        pfc::string8 format=
+                            "[%artist%]"               "\t"
+                            "[%title%]"                "\t"
+                            "%length_seconds%"         "\t"
+                            "%path%"                   "\t"
+                            "$min($max(0,%rating%),5)"
+                        ;
 
-                            // See <http://wiki.hydrogenaudio.org/index.php?title=Foobar2000:ID3_Tag_Mapping>.
-                            _snprintf_s(
-                                buffer,
-                                _TRUNCATE,
-                                "%s\t%s\t%d\t%s\t%d",
-                                get_meta(info,"ARTIST"),
-                                get_meta(info,"TITLE"),
-                                length,
-                                path,
-                                rating
-                            );
+                        if (static_api_ptr_t<titleformat_compiler>()->compile(script,format)) {
+                            pbc->playback_format_title_ex(track,NULL,format,script,NULL,playback_control::display_level_titles);
                         }
+
+                        _snprintf_s(
+                            buffer,
+                            _TRUNCATE,
+                            "%s",
+                            format.get_ptr()
+                        );
                     }
 
                     // Pass the buffer to CDA.
