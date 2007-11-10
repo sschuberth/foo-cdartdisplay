@@ -7,7 +7,7 @@
  * powerful Helium Music Manager 2007 API <http://www.helium-music-manager.com/>.
  *
  * This version of the component is written against the API specification version
- * 1.6 dated 2007-09-04.
+ * 1.8 dated 2007-09-25.
  */
 
 #ifndef COMPONENT_H
@@ -19,7 +19,7 @@
 #pragma warning(pop)
 
 #define FOO_PLUGIN_NAME         "CD Art Display Interface"
-#define FOO_TARGET_CAD_VERSION  "1.0"
+#define FOO_TARGET_CAD_VERSION  "2.0"
 #define FOO_PLUGIN_RELEASE      "1"
 
 #define FOO_PLUGIN_FILE         _T("foo_cdartdisplay")
