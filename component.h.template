@@ -19,9 +19,9 @@
 #pragma warning(pop)
 
 #define FOO_COMP_NAME     "CD Art Display Interface"
-#define FOO_COMP_VERSION  "2.0"  // This always matches the targetted CAD version number.
+#define FOO_COMP_VERSION  "2.0"     // This specifies the targetted CAD version number.
 #define FOO_COMP_STATE    "beta"
-#define FOO_COMP_RELEASE  "1"    // This is incremented for each public release.
+#define FOO_COMP_RELEASE  "$WCREV$" // This specifies highest committed revision number.
 
 #define FOO_COMP_FILE     _T("foo_cdartdisplay")
 #define FOO_COMP_CLASS    _T("foo_cdartdisplay_class")
