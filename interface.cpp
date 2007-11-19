@@ -109,7 +109,12 @@ class CDArtDisplayInterface:public initquit,public play_callback
                 }
 
                 if (i==0) {
-                    MessageBox(core_api::get_main_window(),_T("Timeout while waiting for the CD Art Display window to register itself."),FOO_COMP_FILE,MB_OK|MB_ICONWARNING);
+                    MessageBox(
+                        core_api::get_main_window(),
+                        _T("Timeout while waiting for the CD Art Display window to register itself. Make sure you are running CD Art Display version 2.0 or newer."),
+                        FOO_COMP_FILE,
+                        MB_OK|MB_ICONWARNING
+                    );
                 }
             }
         }
