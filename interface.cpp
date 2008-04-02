@@ -8,7 +8,7 @@ DECLARE_COMPONENT_VERSION(
     FOO_COMP_NAME,
     FOO_COMP_VERSION " " FOO_COMP_STATE " " FOO_COMP_RELEASE,
     "Message handling component to interface with CD Art Display <http://www.cdartdisplay.com/>.\n"
-    "Compiled on " __DATE__ ", Copyright 2007 by eyebex <eyebex@threekings.tk>."
+    "Compiled on " __DATE__ ", Copyright 2007-2008 by eyebex <eyebex@threekings.tk>."
 );
 
 #include "helpers.inl"
@@ -54,67 +54,74 @@ class CDArtDisplayInterface:public initquit,public play_callback
             MessageBox(core_api::get_main_window(),_T("Unable to create the dummy window."),FOO_COMP_FILE,MB_OK|MB_ICONERROR);
             return;
         }
-
-        m_cda_window=NULL;
         ++s_instances;
+
+        // Try to find a running CAD instance.
+        m_cda_window=FindWindow(NULL,_T("CD Art Display 1.x Class"));
 
 #ifdef VERBOSE_MESSAGE_BOXES
         MessageBox(core_api::get_main_window(),_T("Construction was successful."),FOO_COMP_FILE,MB_OK|MB_ICONINFORMATION);
 #endif
 
-        // If enabled, start CAD with foobar2000.
+        // If enabled, start CAD together with foobar2000 ...
         if (cfg_cad_start) {
-            pfc::string8 cmd_line("\"");
-            cmd_line+=cfg_cad_path;
-            cmd_line+="\" foobar2000";
-
-            // Get the foobar2000 configuration strings and convert them to the
-            // OS' format.
-            static pfc::stringcvt::string_os_from_utf8 path2os;
-            path2os.convert(cmd_line);
-
-            static STARTUPINFO si={0};
-            static PROCESS_INFORMATION pi;
-
-            BOOL result=CreateProcess(
-                NULL,
-                const_cast<LPWSTR>(path2os.get_ptr()),
-                NULL,
-                NULL,
-                FALSE,
-                0,
-                NULL,
-                NULL,
-                &si,
-                &pi
-            );
-
-            if (!result) {
-                MessageBox(core_api::get_main_window(),_T("Unable to launch CD Art Display."),FOO_COMP_FILE,MB_OK|MB_ICONERROR);
+            // ... but only if it is not already running.
+            if (m_cda_window) {
+                SendMessage(m_cda_window,WM_USER,0,IPC_TRACK_CHANGED_NOTIFICATION);
             }
             else {
-                // Wait at most 5 seconds for CAD to register itself.
-                int i=50;
-                MSG msg;
+                pfc::string8 cmd_line("\"");
+                cmd_line+=cfg_cad_path;
+                cmd_line+="\" foobar2000";
 
-                while (m_cda_window==NULL && i>0) {
-                    // Dispatch any message in the queue.
-                    if (PeekMessage(&msg,NULL,0,0,PM_REMOVE)) {
-                        TranslateMessage(&msg);
-                        DispatchMessage(&msg);
+                // Get the foobar2000 configuration strings and convert them to the
+                // OS' format.
+                static pfc::stringcvt::string_os_from_utf8 path2os;
+                path2os.convert(cmd_line);
+
+                static STARTUPINFO si={0};
+                static PROCESS_INFORMATION pi;
+
+                BOOL result=CreateProcess(
+                    NULL,
+                    const_cast<LPWSTR>(path2os.get_ptr()),
+                    NULL,
+                    NULL,
+                    FALSE,
+                    0,
+                    NULL,
+                    NULL,
+                    &si,
+                    &pi
+                );
+
+                if (!result) {
+                    MessageBox(core_api::get_main_window(),_T("Unable to launch CD Art Display."),FOO_COMP_FILE,MB_OK|MB_ICONERROR);
+                }
+                else {
+                    // Wait at most 5 seconds for CAD to register itself.
+                    int i=50;
+                    MSG msg;
+
+                    while (m_cda_window==NULL && i>0) {
+                        // Dispatch any message in the queue.
+                        if (PeekMessage(&msg,NULL,0,0,PM_REMOVE)) {
+                            TranslateMessage(&msg);
+                            DispatchMessage(&msg);
+                        }
+
+                        Sleep(100);
+                        --i;
                     }
 
-                    Sleep(100);
-                    --i;
-                }
-
-                if (i==0) {
-                    MessageBox(
-                        core_api::get_main_window(),
-                        _T("Timeout while waiting for the CD Art Display window to register itself. Make sure you are running CD Art Display version 2.0 or newer."),
-                        FOO_COMP_FILE,
-                        MB_OK|MB_ICONWARNING
-                    );
+                    if (i==0) {
+                        MessageBox(
+                            core_api::get_main_window(),
+                            _T("Timeout while waiting for the CD Art Display window to register itself. Make sure you are running CD Art Display version 2.0 or newer."),
+                            FOO_COMP_FILE,
+                            MB_OK|MB_ICONWARNING
+                        );
+                    }
                 }
             }
         }
