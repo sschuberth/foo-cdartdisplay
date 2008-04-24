@@ -365,7 +365,7 @@ class CDArtDisplayInterface:public initquit,public play_callback
 
                         pfc::string_directory* cfg_cad_root=new pfc::string_directory(cfg_cad_path);
 
-                        _snprintf_s(
+                        int result=_snprintf_s(
                             buffer,
                             _TRUNCATE,
                             "%s\t%s%s\t%s",
@@ -373,6 +373,7 @@ class CDArtDisplayInterface:public initquit,public play_callback
                             (char const*)(*cfg_cad_root),"\\Skins\\Default\\nocover.png",
                             format2.get_ptr()
                         );
+                        assert(result>0);
 
                         delete cfg_cad_root;
                     }
@@ -432,12 +433,13 @@ class CDArtDisplayInterface:public initquit,public play_callback
                             pbc->playback_format_title_ex(track,NULL,format,script,NULL,playback_control::display_level_titles);
                         }
 
-                        _snprintf_s(
+                        int result=_snprintf_s(
                             buffer,
                             _TRUNCATE,
                             "%s",
                             format.get_ptr()
                         );
+                        assert(result>0);
                     }
 
                     // Pass the buffer to CDA.
