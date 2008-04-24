@@ -352,7 +352,8 @@ class CDArtDisplayInterface:public initquit,public play_callback
                             "[%publisher%]"            "\t"
                             "[%conductor%]"            "\t"
                             "[%producer%]"             "\t"
-                            "[%copyright%]"
+                            "[%copyright%]"            "\t"
+                            "[%bitrate%]"
                         ;
 
                         if (static_api_ptr_t<titleformat_compiler>()->compile(script,format1)) {
@@ -369,8 +370,7 @@ class CDArtDisplayInterface:public initquit,public play_callback
                             _TRUNCATE,
                             "%s\t%s%s\t%s",
                             format1.get_ptr(),
-                            (char const*)(*cfg_cad_root),
-                            "\\Skins\\Default\\nocover.png",
+                            (char const*)(*cfg_cad_root),"\\Skins\\Default\\nocover.png",
                             format2.get_ptr()
                         );
 
