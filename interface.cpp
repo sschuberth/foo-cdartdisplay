@@ -247,7 +247,7 @@ class CDArtDisplayInterface:public initquit,public play_callback
             static char buffer[MAX_PATH];
             ZeroMemory(buffer,sizeof(buffer));
 
-            if (cds->cbData>=sizeof(buffer)-1) {
+            if (cds->cbData>=sizeof(buffer)) {
                 cds->cbData=sizeof(buffer)-1;
             }
             strncpy_s(buffer,static_cast<char const*>(cds->lpData),cds->cbData);
@@ -321,67 +321,65 @@ class CDArtDisplayInterface:public initquit,public play_callback
                     return static_cast<LONG>(volume+100.0f);
                 }
                 case IPC_GET_CURRENT_TRACK: {
-                    if (!_this) {
+                    metadb_handle_ptr track;
+                    if (!_this || !pbc->get_now_playing(track)) {
                         return 0;
+                    }
+
+                    service_ptr_t<titleformat_object> script;
+
+                    // See <http://wiki.hydrogenaudio.org/index.php?title=Foobar2000:Titleformat_Reference>.
+                    pfc::string8 format1=
+                        "[%title%]"                "\t"
+                        "[%artist%]"               "\t"
+                        "[%album%]"                "\t"
+                        "[%genre%]"                "\t"
+                        "[%date%]"                 "\t"
+                        "[%comment%]"              "\t"
+                        "$num(%tracknumber%,0)"    "\t"
+                        "%length_seconds%"         "\t"
+                        "%path%"                   "\t"
+                        "$min($max(0,%rating%),5)"
+                    ;
+                    pfc::string8 format2=
+                        "[%composer%]"             "\t"
+                        "[%lyricist%]"             "\t"
+                        "[%publisher%]"            "\t"
+                        "[%conductor%]"            "\t"
+                        "[%producer%]"             "\t"
+                        "[%copyright%]"            "\t"
+                        "[%bitrate%]"
+                    ;
+
+                    if (static_api_ptr_t<titleformat_compiler>()->compile(script,format1)) {
+                        pbc->playback_format_title_ex(track,NULL,format1,script,NULL,playback_control::display_level_titles);
+                    }
+                    if (static_api_ptr_t<titleformat_compiler>()->compile(script,format2)) {
+                        pbc->playback_format_title_ex(track,NULL,format2,script,NULL,playback_control::display_level_titles);
                     }
 
                     // Copy the information to a buffer.
                     static char buffer[4096];
                     ZeroMemory(buffer,sizeof(buffer));
 
-                    metadb_handle_ptr track;
-                    if (pbc->get_now_playing(track)) {
-                        service_ptr_t<titleformat_object> script;
+                    pfc::string_directory* cfg_cad_root=new pfc::string_directory(cfg_cad_path);
 
-                        // See <http://wiki.hydrogenaudio.org/index.php?title=Foobar2000:Titleformat_Reference>.
-                        pfc::string8 format1=
-                            "[%title%]"                "\t"
-                            "[%artist%]"               "\t"
-                            "[%album%]"                "\t"
-                            "[%genre%]"                "\t"
-                            "[%date%]"                 "\t"
-                            "[%comment%]"              "\t"
-                            "$num(%tracknumber%,0)"    "\t"
-                            "%length_seconds%"         "\t"
-                            "%path%"                   "\t"
-                            "$min($max(0,%rating%),5)"
-                        ;
-                        pfc::string8 format2=
-                            "[%composer%]"             "\t"
-                            "[%lyricist%]"             "\t"
-                            "[%publisher%]"            "\t"
-                            "[%conductor%]"            "\t"
-                            "[%producer%]"             "\t"
-                            "[%copyright%]"            "\t"
-                            "[%bitrate%]"
-                        ;
+                    int result=_snprintf_s(
+                        buffer,
+                        _TRUNCATE,
+                        "%s\t%s%s\t%s",
+                        format1.get_ptr(),
+                        (char const*)(*cfg_cad_root),"\\Skins\\Default\\nocover.png",
+                        format2.get_ptr()
+                    );
+                    assert(result>0);
 
-                        if (static_api_ptr_t<titleformat_compiler>()->compile(script,format1)) {
-                            pbc->playback_format_title_ex(track,NULL,format1,script,NULL,playback_control::display_level_titles);
-                        }
-                        if (static_api_ptr_t<titleformat_compiler>()->compile(script,format2)) {
-                            pbc->playback_format_title_ex(track,NULL,format2,script,NULL,playback_control::display_level_titles);
-                        }
-
-                        pfc::string_directory* cfg_cad_root=new pfc::string_directory(cfg_cad_path);
-
-                        int result=_snprintf_s(
-                            buffer,
-                            _TRUNCATE,
-                            "%s\t%s%s\t%s",
-                            format1.get_ptr(),
-                            (char const*)(*cfg_cad_root),"\\Skins\\Default\\nocover.png",
-                            format2.get_ptr()
-                        );
-                        assert(result>0);
-
-                        delete cfg_cad_root;
-                    }
+                    delete cfg_cad_root;
 
                     // Pass the buffer to CDA.
                     static COPYDATASTRUCT cds;
                     cds.dwData=IPC_GET_CURRENT_TRACK;
-                    cds.cbData=sizeof(buffer);
+                    cds.cbData=result;
                     cds.lpData=buffer;
 
                     return SendMessage(_this->m_cda_window,WM_COPYDATA,reinterpret_cast<WPARAM>(hWnd),reinterpret_cast<LPARAM>(&cds));
@@ -408,44 +406,42 @@ class CDArtDisplayInterface:public initquit,public play_callback
                     return plm->activeplaylist_execute_default_action(static_cast<t_size>(wParam));
                 }
                 case IPC_GET_LIST_ITEM: {
-                    if (!_this) {
+                    metadb_handle_ptr track;
+                    if (!_this || !plm->activeplaylist_get_item_handle(track,static_cast<t_size>(wParam))) {
                         return 0;
+                    }
+
+                    service_ptr_t<titleformat_object> script;
+
+                    // See <http://wiki.hydrogenaudio.org/index.php?title=Foobar2000:Titleformat_Reference>.
+                    pfc::string8 format=
+                        "[%artist%]"               "\t"
+                        "[%title%]"                "\t"
+                        "%length_seconds%"         "\t"
+                        "%path%"                   "\t"
+                        "$min($max(0,%rating%),5)"
+                    ;
+
+                    if (static_api_ptr_t<titleformat_compiler>()->compile(script,format)) {
+                        pbc->playback_format_title_ex(track,NULL,format,script,NULL,playback_control::display_level_titles);
                     }
 
                     // Copy the information to a buffer.
                     static char buffer[4096];
                     ZeroMemory(buffer,sizeof(buffer));
 
-                    metadb_handle_ptr track;
-                    if (plm->activeplaylist_get_item_handle(track,static_cast<t_size>(wParam))) {
-                        service_ptr_t<titleformat_object> script;
-
-                        // See <http://wiki.hydrogenaudio.org/index.php?title=Foobar2000:Titleformat_Reference>.
-                        pfc::string8 format=
-                            "[%artist%]"               "\t"
-                            "[%title%]"                "\t"
-                            "%length_seconds%"         "\t"
-                            "%path%"                   "\t"
-                            "$min($max(0,%rating%),5)"
-                        ;
-
-                        if (static_api_ptr_t<titleformat_compiler>()->compile(script,format)) {
-                            pbc->playback_format_title_ex(track,NULL,format,script,NULL,playback_control::display_level_titles);
-                        }
-
-                        int result=_snprintf_s(
-                            buffer,
-                            _TRUNCATE,
-                            "%s",
-                            format.get_ptr()
-                        );
-                        assert(result>0);
-                    }
+                    int result=_snprintf_s(
+                        buffer,
+                        _TRUNCATE,
+                        "%s",
+                        format.get_ptr()
+                    );
+                    assert(result>0);
 
                     // Pass the buffer to CDA.
                     static COPYDATASTRUCT cds;
                     cds.dwData=IPC_GET_LIST_ITEM;
-                    cds.cbData=sizeof(buffer);
+                    cds.cbData=result;
                     cds.lpData=buffer;
 
                     return SendMessage(_this->m_cda_window,WM_COPYDATA,reinterpret_cast<WPARAM>(hWnd),reinterpret_cast<LPARAM>(&cds));
@@ -579,7 +575,9 @@ class CDArtDisplayInterface:public initquit,public play_callback
                 }
 
                 case IPC_GET_CURRENT_LYRICS: {
-                    if (!_this) {
+                    metadb_handle_ptr track;
+                    file_info_impl info;
+                    if (!_this || !plm->activeplaylist_get_item_handle(track,static_cast<t_size>(wParam)) || !track->get_info(info)) {
                         return 0;
                     }
 
@@ -587,19 +585,13 @@ class CDArtDisplayInterface:public initquit,public play_callback
                     static char buffer[16384];
                     ZeroMemory(buffer,sizeof(buffer));
 
-                    metadb_handle_ptr track;
-                    if (plm->activeplaylist_get_item_handle(track,static_cast<t_size>(wParam))) {
-                        file_info_impl info;
-                        if (track->get_info(info)) {
-                            char const* lyrics=info.meta_get("UNSYNCEDLYRICS",0);
-                            pfc::strcpy_utf8_truncate(lyrics,buffer,sizeof(buffer)-1);
-                        }
-                    }
+                    char const* lyrics=info.meta_get("UNSYNCEDLYRICS",0);
+                    t_size length=pfc::strcpy_utf8_truncate(lyrics,buffer,sizeof(buffer));
 
                     // Pass the buffer to CDA.
                     static COPYDATASTRUCT cds;
                     cds.dwData=IPC_GET_CURRENT_LYRICS;
-                    cds.cbData=pfc::strlen_utf8(buffer);
+                    cds.cbData=length;
                     cds.lpData=buffer;
 
                     return SendMessage(_this->m_cda_window,WM_COPYDATA,reinterpret_cast<WPARAM>(hWnd),reinterpret_cast<LPARAM>(&cds));
