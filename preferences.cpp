@@ -3,6 +3,8 @@
 #include "component.h"
 #include "resource.h"
 
+#include <foobar2000/helpers/win32_dialog.h>
+
 #define DEFAULT_CAD_START     true
 #define DEFAULT_CAD_PATH      get_registry_string(HKEY_CURRENT_USER,_T("Software\\CD Art Display"))
 #define DEFAULT_WRITE_RATING  false
