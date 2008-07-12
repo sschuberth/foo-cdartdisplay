@@ -1,7 +1,7 @@
 History of Changes
 ------------------
 
-Version 2.0 beta 146 (2008-Jul-12)
+Version 2.0 beta 148 (2008-Jul-12)
   - Update to foobar SDK 2008-07-10.
   - Add some assertions to check for string truncation.
   - Reworked some buffer copy operations for security and performance.
