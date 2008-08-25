@@ -1,23 +1,27 @@
 History of Changes
 ------------------
 
-Version 2.0 beta 148 (2008-Jul-12)
+Version 2.0 Final 174 (2008-Aug-26)
+  - Update to foobar SDK 2008-07-20.
+
+
+Version 2.0 Beta 148 (2008-Jul-12)
   - Update to foobar SDK 2008-07-10.
   - Add some assertions to check for string truncation.
   - Reworked some buffer copy operations for security and performance.
   - Optimize some release mode compiler settings.
 
 
-Version 2.0 beta 134 (2008-Apr-25)
+Version 2.0 Beta 134 (2008-Apr-25)
   - Update to foobar SDK 2008-04-19 and Visual Studio 2008.
   - Add more recent API documentation; put it to its own directory.
   - Pass bitrate information to CAD.
 
 
-Version 2.0 beta 129 (2008-Apr-03)
+Version 2.0 Beta 129 (2008-Apr-03)
   - More detailed error message.
   - Do not try to run CAD if it is already running, send a notification instead; updated copyright.
 
 
-Version 2.0 beta 116 (2007-Nov-11)
+Version 2.0 Beta 116 (2007-Nov-11)
   - First official release.
