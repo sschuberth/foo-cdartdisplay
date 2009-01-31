@@ -186,6 +186,10 @@
 			>
 		</File>
 		<File
+			RelativePath=".\component.h.template"
+			>
+		</File>
+		<File
 			RelativePath=".\helpers.inl"
 			>
 		</File>
