@@ -1,13 +1,20 @@
 /*
- * This is a foobar2000 0.9.x <http://www.foobar2000.org/> component to interface
- * with CD Art Display 1.x <http://www.closetosoftware.com/?s=cdartdisplay>.
+ * Copyright (C) 2007-2009  eyebex <eyebex@threekings.tk>
  *
- * It is an alternative to using foo_winamp_spam in that it does not simulate the
- * Winamp 1.x API <http://www.oldversion.com/program.php?n=winamp> but the more
- * powerful Helium Music Manager 2007 API <http://www.helium-music-manager.com/>.
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2.1 of the License, or (at your option) any later version.
  *
- * This version of the component is written against the API specification version
- * 1.8 dated 2007-09-25.
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+ *
  */
 
 #ifndef COMPONENT_H
@@ -19,8 +26,8 @@
 #pragma warning(pop)
 
 #define FOO_COMP_NAME     "CD Art Display Interface"
-#define FOO_COMP_VERSION  "2.0"     // This specifies the targetted CAD version number.
-#define FOO_COMP_STATE    "final"
+#define FOO_COMP_VERSION  "2.0.1"   // Major and minor number specify the targetted CAD version number.
+#define FOO_COMP_STATE    "release"
 #define FOO_COMP_RELEASE  "$WCREV$" // This specifies highest committed revision number.
 
 #define FOO_COMP_FILE     _T("foo_cdartdisplay")
