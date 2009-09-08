@@ -18,7 +18,7 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="Debug"
+			OutputDirectory="D:\Program Files (x86)\foobar2000\components"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="2"
 			CharacterSet="1"
@@ -43,7 +43,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;D:\Development\Libraries\foobar SDK&quot;"
+				AdditionalIncludeDirectories="D:\Development\Libraries\foobar2000 SDK"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -66,7 +66,7 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="shared.lib advapi32.lib shlwapi.lib"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="&quot;D:\Development\Libraries\foobar SDK\foobar2000\shared&quot;"
+				AdditionalLibraryDirectories="D:\Development\Libraries\foobar2000 SDK\foobar2000\shared"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				RandomizedBaseAddress="1"
@@ -97,7 +97,7 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="Release"
+			OutputDirectory="D:\Program Files (x86)\foobar2000\components"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="2"
 			CharacterSet="1"
@@ -122,7 +122,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="&quot;D:\Development\Libraries\foobar SDK&quot;"
+				AdditionalIncludeDirectories="D:\Development\Libraries\foobar2000 SDK"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL"
 				StringPooling="true"
 				RuntimeLibrary="0"
@@ -146,7 +146,7 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="shared.lib advapi32.lib shlwapi.lib"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="&quot;D:\Development\Libraries\foobar SDK\foobar2000\shared&quot;"
+				AdditionalLibraryDirectories="D:\Development\Libraries\foobar2000 SDK\foobar2000\shared"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				OptimizeReferences="2"
