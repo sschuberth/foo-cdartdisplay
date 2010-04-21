@@ -49,5 +49,5 @@ static t_size get_playback_order_index(static_api_ptr_t<playlist_manager>& plm,G
             return i;
         }
     }
-    return infinite_size;
+    return pfc::infinite_size;
 }
