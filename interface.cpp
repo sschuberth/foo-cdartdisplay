@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2010  eyebex <eyebex@threekings.tk>
+ * Copyright (C) 2007-2010  Sebastian Schuberth <sschuberth_AT_gmail_DOT_com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -26,8 +26,9 @@ extern cfg_bool cfg_write_rating;
 DECLARE_COMPONENT_VERSION(
     FOO_COMP_NAME,
     FOO_COMP_VERSION " " FOO_COMP_STATE " " FOO_COMP_RELEASE,
-    "Message handling component to interface with CD Art Display <http://www.cdartdisplay.com/>.\n"
-    "Compiled on " __DATE__ ", Copyright (C) 2007-2010  eyebex <eyebex@threekings.tk>."
+    "This is a message interface component for CD Art Display:\nhttp://www.cdartdisplay.com/\n\n"
+    "Compiled on " __DATE__ "\nCopyright (C) 2007-2010  Sebastian Schuberth <sschuberth_AT_gmail_DOT_com>\n\n"
+    "The source code is available under LGPL at:\nhttp://foo-cdartdisplay.googlecode.com/"
 );
 
 #include "helpers.inl"

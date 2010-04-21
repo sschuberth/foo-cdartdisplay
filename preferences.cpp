@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2010  eyebex <eyebex@threekings.tk>
+ * Copyright (C) 2007-2010  Sebastian Schuberth <sschuberth_AT_gmail_DOT_com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
