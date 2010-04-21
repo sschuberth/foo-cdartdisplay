@@ -51,3 +51,8 @@ static t_size get_playback_order_index(static_api_ptr_t<playlist_manager>& plm,G
     }
     return pfc::infinite_size;
 }
+
+static audio_sample scale_to_gain(double p_scale)
+{
+    return (audio_sample)(20.0*log10(p_scale));
+}
