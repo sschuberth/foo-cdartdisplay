@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2009  eyebex <eyebex@threekings.tk>
+ * Copyright (C) 2007-2010  eyebex <eyebex@threekings.tk>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -27,7 +27,7 @@ DECLARE_COMPONENT_VERSION(
     FOO_COMP_NAME,
     FOO_COMP_VERSION " " FOO_COMP_STATE " " FOO_COMP_RELEASE,
     "Message handling component to interface with CD Art Display <http://www.cdartdisplay.com/>.\n"
-    "Compiled on " __DATE__ ", Copyright (C) 2007-2009  eyebex <eyebex@threekings.tk>."
+    "Compiled on " __DATE__ ", Copyright (C) 2007-2010  eyebex <eyebex@threekings.tk>."
 );
 
 #include "helpers.inl"
