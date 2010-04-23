@@ -91,7 +91,7 @@ class CDArtDisplayPreferences:public preferences_page
     }
 
     bool get_help_url(pfc::string_base & p_out) {
-        p_out="http://closetosoftware.com/forum/";
+        p_out="http://www.cdartdisplay.com/forum/";
         return true;
     }
 
