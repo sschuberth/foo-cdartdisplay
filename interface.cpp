@@ -319,29 +319,31 @@ class CDArtDisplayInterface:public initquit,public play_callback
 
                 case IPC_SET_VOLUME: {
                     // Get the volume scale in range [0,100].
-                    LONG volume=static_cast<LONG>(wParam);
+                    LONG scale=static_cast<LONG>(wParam);
 
                     // Clamp due to mouse scroll wheel events.
-                    if (volume<1) {
-                        volume=1;
+                    if (scale<1) {
+                        scale=1;
                     }
-                    else if (volume>100) {
-                        volume=100;
+                    else if (scale>100) {
+                        scale=100;
                     }
 
                     // Set the volume gain in dB. For some hints about the formula, see
                     // http://www.hydrogenaudio.org/forums/index.php?showtopic=47858
                     // NOTE: foobar2000 seems to use a factor of 3.0 here, but 2.5 maps
                     // more nicely 1 to -100.
-                    pbc->set_volume(static_cast<float>(scale_to_gain(volume/100.0)*2.5));
+                    audio_sample gain=scale_to_gain(scale/100.0)*2.5;
+                    pbc->set_volume(static_cast<float>(gain));
                     return 1;
                 }
                 case IPC_GET_VOLUME: {
-                    // Get volume gain in range [-100,0].
-                    float volume=pbc->get_volume();
+                    // Get the volume gain in range [-100,0].
+                    float gain=pbc->get_volume();
 
                     // Return the volume scale.
-                    return static_cast<LONG>(audio_math::gain_to_scale(volume/2.5)*100);
+                    audio_sample scale=audio_math::gain_to_scale(gain/2.5)*100;
+                    return static_cast<LONG>(round_to_even(scale));
                 }
                 case IPC_GET_CURRENT_TRACK: {
                     metadb_handle_ptr track;
