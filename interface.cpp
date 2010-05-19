@@ -253,14 +253,15 @@ class CDArtDisplayInterface:public initquit,public play_callback
             _this=static_cast<CDArtDisplayInterface*>(params);
             SetWindowLongPtr(hWnd,GWLP_USERDATA,reinterpret_cast<LONG_PTR>(_this));
         }
-        else if (uMsg==WM_DESTROY) {
+
+        if (!_this) {
+            return 0;
+        }
+
+        if (uMsg==WM_DESTROY) {
             SendMessage(_this->m_cda_window,WM_USER,0,IPC_SHUTDOWN_NOTIFICATION);
         }
         else if (uMsg==WM_COPYDATA) {
-            if (!_this) {
-                return 0;
-            }
-
             PCOPYDATASTRUCT cds=reinterpret_cast<PCOPYDATASTRUCT>(lParam);
 
             char buffer[MAX_PATH];
@@ -346,7 +347,7 @@ class CDArtDisplayInterface:public initquit,public play_callback
                 }
                 case IPC_GET_CURRENT_TRACK: {
                     metadb_handle_ptr track;
-                    if (!_this || !pbc->get_now_playing(track)) {
+                    if (!pbc->get_now_playing(track)) {
                         return 0;
                     }
 
@@ -431,7 +432,7 @@ class CDArtDisplayInterface:public initquit,public play_callback
                 }
                 case IPC_GET_LIST_ITEM: {
                     metadb_handle_ptr track;
-                    if (!_this || !plm->activeplaylist_get_item_handle(track,static_cast<t_size>(wParam))) {
+                    if (!plm->activeplaylist_get_item_handle(track,static_cast<t_size>(wParam))) {
                         return 0;
                     }
 
@@ -471,9 +472,6 @@ class CDArtDisplayInterface:public initquit,public play_callback
                     return SendMessage(_this->m_cda_window,WM_COPYDATA,reinterpret_cast<WPARAM>(hWnd),reinterpret_cast<LPARAM>(&cds));
                 }
                 case IPC_SET_CALLBACK_HWND: {
-                    if (!_this) {
-                        return 0;
-                    }
                     _this->m_cda_window=reinterpret_cast<HWND>(wParam);
                     return 1;
                 }
@@ -601,7 +599,7 @@ class CDArtDisplayInterface:public initquit,public play_callback
                 case IPC_GET_CURRENT_LYRICS: {
                     metadb_handle_ptr track;
                     file_info_impl info;
-                    if (!_this || !plm->activeplaylist_get_item_handle(track,static_cast<t_size>(wParam)) || !track->get_info(info)) {
+                    if (!plm->activeplaylist_get_item_handle(track,static_cast<t_size>(wParam)) || !track->get_info(info)) {
                         return 0;
                     }
 
