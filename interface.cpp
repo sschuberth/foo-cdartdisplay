@@ -252,16 +252,19 @@ class CDArtDisplayInterface:public initquit,public play_callback
             LPVOID params=reinterpret_cast<CREATESTRUCT*>(lParam)->lpCreateParams;
             _this=static_cast<CDArtDisplayInterface*>(params);
             SetWindowLongPtr(hWnd,GWLP_USERDATA,reinterpret_cast<LONG_PTR>(_this));
+            return 0;
         }
 
         if (!_this) {
-            return 0;
+            return -1;
         }
 
         if (uMsg==WM_DESTROY) {
             SendMessage(_this->m_cda_window,WM_USER,0,IPC_SHUTDOWN_NOTIFICATION);
+            return 0;
         }
-        else if (uMsg==WM_COPYDATA) {
+
+        if (uMsg==WM_COPYDATA) {
             PCOPYDATASTRUCT cds=reinterpret_cast<PCOPYDATASTRUCT>(lParam);
 
             char buffer[MAX_PATH];
@@ -287,345 +290,346 @@ class CDArtDisplayInterface:public initquit,public play_callback
                 return plm->activeplaylist_add_locations(pfc::list_single_ref_t<char const*>(buffer),false,_this->m_cda_window);
             }
         }
-        else if (uMsg==WM_USER) {
-            static_api_ptr_t<playback_control> pbc;
-            static_api_ptr_t<playlist_manager> plm;
 
-            switch (lParam) {
-                case IPC_PLAY: {
-                    pbc->start();
-                    return 1;
-                }
-                case IPC_PLAYPAUSE: {
-                    pbc->play_or_pause();
-                    return 1;
-                }
-                case IPC_FORCEPAUSE: {
-                    pbc->pause(true);
-                    return 1;
-                }
-                case IPC_STOP: {
-                    pbc->stop();
-                    return 1;
-                }
-                case IPC_NEXT: {
-                    pbc->start(playback_control::track_command_next);
-                    return 1;
-                }
-                case IPC_PREVIOUS: {
-                    pbc->start(playback_control::track_command_prev);
-                    return 1;
-                }
-
-                case IPC_SET_VOLUME: {
-                    // Get the volume scale in range [0,100].
-                    LONG scale=static_cast<LONG>(wParam);
-
-                    // Clamp due to mouse scroll wheel events.
-                    if (scale<1) {
-                        scale=1;
-                    }
-                    else if (scale>100) {
-                        scale=100;
-                    }
-
-                    // Set the volume gain in dB. For some hints about the formula, see
-                    // http://www.hydrogenaudio.org/forums/index.php?showtopic=47858
-                    // NOTE: foobar2000 seems to use a factor of 3.0 here, but 2.5 maps
-                    // more nicely 1 to -100.
-                    audio_sample gain=scale_to_gain(scale/100.0)*2.5;
-                    pbc->set_volume(static_cast<float>(gain));
-                    return 1;
-                }
-                case IPC_GET_VOLUME: {
-                    // Get the volume gain in range [-100,0].
-                    float gain=pbc->get_volume();
-
-                    // Return the volume scale.
-                    audio_sample scale=audio_math::gain_to_scale(gain/2.5)*100;
-                    return static_cast<LONG>(round_to_even(scale));
-                }
-                case IPC_GET_CURRENT_TRACK: {
-                    metadb_handle_ptr track;
-                    if (!pbc->get_now_playing(track)) {
-                        return 0;
-                    }
-
-                    service_ptr_t<titleformat_object> script;
-
-                    // See <http://wiki.hydrogenaudio.org/index.php?title=Foobar2000:Titleformat_Reference>.
-                    pfc::string8 format1=
-                        "[%title%]"                "\t"
-                        "[%artist%]"               "\t"
-                        "[%album%]"                "\t"
-                        "[%genre%]"                "\t"
-                        "[%date%]"                 "\t"
-                        "[%comment%]"              "\t"
-                        "$num(%tracknumber%,0)"    "\t"
-                        "%length_seconds%"         "\t"
-                        "%path%"                   "\t"
-                        "$min($max(0,%rating%),5)"
-                    ;
-                    pfc::string8 format2=
-                        "[%composer%]"             "\t"
-                        "[%lyricist%]"             "\t"
-                        "[%publisher%]"            "\t"
-                        "[%conductor%]"            "\t"
-                        "[%producer%]"             "\t"
-                        "[%copyright%]"            "\t"
-                        "[%bitrate%]"
-                    ;
-
-                    if (static_api_ptr_t<titleformat_compiler>()->compile(script,format1)) {
-                        pbc->playback_format_title_ex(track,NULL,format1,script,NULL,playback_control::display_level_titles);
-                    }
-                    if (static_api_ptr_t<titleformat_compiler>()->compile(script,format2)) {
-                        pbc->playback_format_title_ex(track,NULL,format2,script,NULL,playback_control::display_level_titles);
-                    }
-
-                    // Copy the information to a buffer.
-                    char buffer[4096];
-                    ZeroMemory(buffer,sizeof(buffer));
-
-                    pfc::string_directory* cfg_cad_root=new pfc::string_directory(cfg_cad_path);
-
-                    int result=_snprintf_s(
-                        buffer,
-                        _TRUNCATE,
-                        "%s\t%s%s\t%s",
-                        format1.get_ptr(),
-                        (char const*)(*cfg_cad_root),"\\Skins\\Default\\nocover.png",
-                        format2.get_ptr()
-                    );
-                    assert(result>0);
-
-                    delete cfg_cad_root;
-
-                    // Pass the buffer to CDA.
-                    COPYDATASTRUCT cds;
-                    cds.dwData=IPC_GET_CURRENT_TRACK;
-                    cds.cbData=result;
-                    cds.lpData=buffer;
-
-                    return SendMessage(_this->m_cda_window,WM_COPYDATA,reinterpret_cast<WPARAM>(hWnd),reinterpret_cast<LPARAM>(&cds));
-                }
-
-                case IPC_GET_DURATION: {
-                    return static_cast<LONG>(pbc->playback_get_length());
-                }
-                case IPC_SET_POSITION: {
-                    pbc->playback_seek(static_cast<double>(wParam));
-                    return static_cast<LONG>(pbc->playback_get_position());
-                }
-                case IPC_IS_PLAYING: {
-                    return pbc->is_playing();
-                }
-                case IPC_IS_PAUSED: {
-                    return pbc->is_paused();
-                }
-                case IPC_GET_LIST_LENGTH: {
-                    return plm->activeplaylist_get_item_count();
-                }
-                case IPC_SET_LIST_POS: {
-                    // TODO: Find a way to make this work if playback is not the default action.
-                    return plm->activeplaylist_execute_default_action(static_cast<t_size>(wParam));
-                }
-                case IPC_GET_LIST_ITEM: {
-                    metadb_handle_ptr track;
-                    if (!plm->activeplaylist_get_item_handle(track,static_cast<t_size>(wParam))) {
-                        return 0;
-                    }
-
-                    service_ptr_t<titleformat_object> script;
-
-                    // See <http://wiki.hydrogenaudio.org/index.php?title=Foobar2000:Titleformat_Reference>.
-                    pfc::string8 format=
-                        "[%artist%]"               "\t"
-                        "[%title%]"                "\t"
-                        "%length_seconds%"         "\t"
-                        "%path%"                   "\t"
-                        "$min($max(0,%rating%),5)"
-                    ;
-
-                    if (static_api_ptr_t<titleformat_compiler>()->compile(script,format)) {
-                        pbc->playback_format_title_ex(track,NULL,format,script,NULL,playback_control::display_level_titles);
-                    }
-
-                    // Copy the information to a buffer.
-                    char buffer[4096];
-                    ZeroMemory(buffer,sizeof(buffer));
-
-                    int result=_snprintf_s(
-                        buffer,
-                        _TRUNCATE,
-                        "%s",
-                        format.get_ptr()
-                    );
-                    assert(result>0);
-
-                    // Pass the buffer to CDA.
-                    COPYDATASTRUCT cds;
-                    cds.dwData=IPC_GET_LIST_ITEM;
-                    cds.cbData=result;
-                    cds.lpData=buffer;
-
-                    return SendMessage(_this->m_cda_window,WM_COPYDATA,reinterpret_cast<WPARAM>(hWnd),reinterpret_cast<LPARAM>(&cds));
-                }
-                case IPC_SET_CALLBACK_HWND: {
-                    _this->m_cda_window=reinterpret_cast<HWND>(wParam);
-                    return 1;
-                }
-                case IPC_GET_LIST_POS: {
-                    return static_cast<LONG>(plm->activeplaylist_get_focus_item());
-                }
-                case IPC_GET_POSITION: {
-                    return static_cast<LONG>(pbc->playback_get_position());
-                }
-
-                case IPC_SHOW_PLAYER_WINDOW: {
-                    static_api_ptr_t<ui_control> uic;
-                    if (uic->is_visible()) {
-                        uic->hide();
-                    }
-                    else {
-                        uic->activate();
-                    }
-                    return 1;
-                }
-                case IPC_GET_PLAYER_STATE: {
-                    if (pbc->is_paused()) {
-                        return HS_PAUSED;
-                    }
-                    if (pbc->is_playing()) {
-                        return HS_PLAYING;
-                    }
-                    return HS_STOPPED;
-                }
-
-                case IPC_SET_REPEAT: {
-                    GUID guid=plm->playback_order_get_guid(plm->playback_order_get_active());
-
-                    // Cycle through all "Repeat" modes and "Default".
-                    if (guid==ORDER_REPEAT_PLAYLIST) {
-                        plm->playback_order_set_active(get_playback_order_index(plm,ORDER_REPEAT_TRACK));
-                    }
-                    else if (guid==ORDER_REPEAT_TRACK) {
-                        plm->playback_order_set_active(get_playback_order_index(plm,ORDER_DEFAULT));
-                    }
-                    else {
-                        plm->playback_order_set_active(get_playback_order_index(plm,ORDER_REPEAT_PLAYLIST));
-                    }
-
-                    return 1;
-                }
-                case IPC_GET_REPEAT: {
-                    // Check if the current order mode is any of the "Repeat" modes.
-                    GUID guid=plm->playback_order_get_guid(plm->playback_order_get_active());
-                    return guid==ORDER_REPEAT_PLAYLIST || guid==ORDER_REPEAT_TRACK;
-                }
-
-                case IPC_CLOSE_PLAYER: {
-                    standard_commands::main_exit();
-                    return 1;
-                }
-
-                case IPC_SET_SHUFFLE: {
-                    GUID guid=plm->playback_order_get_guid(plm->playback_order_get_active());
-
-                    // Cycle through all "Shuffle" modes and "Default".
-                    if (guid==ORDER_SHUFFLE_TRACKS) {
-                        plm->playback_order_set_active(get_playback_order_index(plm,ORDER_SHUFFLE_ALBUMS));
-                    }
-                    else if (guid==ORDER_SHUFFLE_ALBUMS) {
-                        plm->playback_order_set_active(get_playback_order_index(plm,ORDER_SHUFFLE_DIRECTORIES));
-                    }
-                    else if (guid==ORDER_SHUFFLE_DIRECTORIES) {
-                        plm->playback_order_set_active(get_playback_order_index(plm,ORDER_DEFAULT));
-                    }
-                    else {
-                        plm->playback_order_set_active(get_playback_order_index(plm,ORDER_SHUFFLE_TRACKS));
-                    }
-
-                    return 1;
-                }
-                case IPC_GET_SHUFFLE: {
-                    // Check if the current order mode is any of the "Shuffle" modes.
-                    GUID guid=plm->playback_order_get_guid(plm->playback_order_get_active());
-                    return guid==ORDER_SHUFFLE_TRACKS || guid==ORDER_SHUFFLE_ALBUMS || guid==ORDER_SHUFFLE_DIRECTORIES;
-                }
-
-                // For compatibility with Helium.
-                case IPC_SET_RATING:
-
-                case IPC_RATING_CHANGED_NOTIFICATION: {
-                    if (!cfg_write_rating) {
-                        return 0;
-                    }
-
-                    int rating=static_cast<int>(wParam);
-                    if (rating<0) {
-                        rating=0;
-                    }
-                    else if (rating>5) {
-                        rating=5;
-                    }
-                    char const rating_str[]={'0'+static_cast<char>(rating),'\0'};
-
-                    metadb_handle_ptr track;
-                    if (pbc->get_now_playing(track)) {
-                        file_info_impl info;
-                        if (track->get_info(info)) {
-                            track->metadb_lock();
-                            if (rating>0) {
-                                info.meta_set("RATING",rating_str);
-                            }
-                            else {
-                                info.meta_remove_field("RATING");
-                            }
-                            static_api_ptr_t<metadb_io_v2>()->update_info_async_simple(
-                                pfc::list_single_ref_t<metadb_handle_ptr>(track),
-                                pfc::list_single_ref_t<file_info const*>(&info),
-                                core_api::get_main_window(),
-                                metadb_io_v2::op_flag_delay_ui,
-                                NULL
-                            );
-                            track->metadb_unlock();
-                        }
-                    }
-
-                    return 1;
-                }
-
-                case IPC_GET_CURRENT_LYRICS: {
-                    metadb_handle_ptr track;
-                    file_info_impl info;
-                    if (!plm->activeplaylist_get_item_handle(track,static_cast<t_size>(wParam)) || !track->get_info(info)) {
-                        return 0;
-                    }
-
-                    // Copy the information to a buffer.
-                    char buffer[16384];
-                    ZeroMemory(buffer,sizeof(buffer));
-
-                    char const* lyrics=info.meta_get("UNSYNCEDLYRICS",0);
-                    t_size length=pfc::strcpy_utf8_truncate(lyrics,buffer,sizeof(buffer));
-
-                    // Pass the buffer to CDA.
-                    COPYDATASTRUCT cds;
-                    cds.dwData=IPC_GET_CURRENT_LYRICS;
-                    cds.cbData=length;
-                    cds.lpData=buffer;
-
-                    return SendMessage(_this->m_cda_window,WM_COPYDATA,reinterpret_cast<WPARAM>(hWnd),reinterpret_cast<LPARAM>(&cds));
-                }
-
-                default: {
-                    return 0;
-                }
-            }
+        if (uMsg!=WM_USER) {
+            return DefWindowProc(hWnd,uMsg,wParam,lParam);
         }
 
-        return DefWindowProc(hWnd,uMsg,wParam,lParam);
+        static_api_ptr_t<playback_control> pbc;
+        static_api_ptr_t<playlist_manager> plm;
+
+        switch (lParam) {
+            case IPC_PLAY: {
+                pbc->start();
+                return 1;
+            }
+            case IPC_PLAYPAUSE: {
+                pbc->play_or_pause();
+                return 1;
+            }
+            case IPC_FORCEPAUSE: {
+                pbc->pause(true);
+                return 1;
+            }
+            case IPC_STOP: {
+                pbc->stop();
+                return 1;
+            }
+            case IPC_NEXT: {
+                pbc->start(playback_control::track_command_next);
+                return 1;
+            }
+            case IPC_PREVIOUS: {
+                pbc->start(playback_control::track_command_prev);
+                return 1;
+            }
+
+            case IPC_SET_VOLUME: {
+                // Get the volume scale in range [0,100].
+                LONG scale=static_cast<LONG>(wParam);
+
+                // Clamp due to mouse scroll wheel events.
+                if (scale<1) {
+                    scale=1;
+                }
+                else if (scale>100) {
+                    scale=100;
+                }
+
+                // Set the volume gain in dB. For some hints about the formula, see
+                // http://www.hydrogenaudio.org/forums/index.php?showtopic=47858
+                // NOTE: foobar2000 seems to use a factor of 3.0 here, but 2.5 maps
+                // more nicely 1 to -100.
+                audio_sample gain=scale_to_gain(scale/100.0)*2.5;
+                pbc->set_volume(static_cast<float>(gain));
+                return 1;
+            }
+            case IPC_GET_VOLUME: {
+                // Get the volume gain in range [-100,0].
+                float gain=pbc->get_volume();
+
+                // Return the volume scale.
+                audio_sample scale=audio_math::gain_to_scale(gain/2.5)*100;
+                return static_cast<LONG>(round_to_even(scale));
+            }
+            case IPC_GET_CURRENT_TRACK: {
+                metadb_handle_ptr track;
+                if (!pbc->get_now_playing(track)) {
+                    return 0;
+                }
+
+                service_ptr_t<titleformat_object> script;
+
+                // See <http://wiki.hydrogenaudio.org/index.php?title=Foobar2000:Titleformat_Reference>.
+                pfc::string8 format1=
+                    "[%title%]"                "\t"
+                    "[%artist%]"               "\t"
+                    "[%album%]"                "\t"
+                    "[%genre%]"                "\t"
+                    "[%date%]"                 "\t"
+                    "[%comment%]"              "\t"
+                    "$num(%tracknumber%,0)"    "\t"
+                    "%length_seconds%"         "\t"
+                    "%path%"                   "\t"
+                    "$min($max(0,%rating%),5)"
+                ;
+                pfc::string8 format2=
+                    "[%composer%]"             "\t"
+                    "[%lyricist%]"             "\t"
+                    "[%publisher%]"            "\t"
+                    "[%conductor%]"            "\t"
+                    "[%producer%]"             "\t"
+                    "[%copyright%]"            "\t"
+                    "[%bitrate%]"
+                ;
+
+                if (static_api_ptr_t<titleformat_compiler>()->compile(script,format1)) {
+                    pbc->playback_format_title_ex(track,NULL,format1,script,NULL,playback_control::display_level_titles);
+                }
+                if (static_api_ptr_t<titleformat_compiler>()->compile(script,format2)) {
+                    pbc->playback_format_title_ex(track,NULL,format2,script,NULL,playback_control::display_level_titles);
+                }
+
+                // Copy the information to a buffer.
+                char buffer[4096];
+                ZeroMemory(buffer,sizeof(buffer));
+
+                pfc::string_directory* cfg_cad_root=new pfc::string_directory(cfg_cad_path);
+
+                int result=_snprintf_s(
+                    buffer,
+                    _TRUNCATE,
+                    "%s\t%s%s\t%s",
+                    format1.get_ptr(),
+                    (char const*)(*cfg_cad_root),"\\Skins\\Default\\nocover.png",
+                    format2.get_ptr()
+                );
+                assert(result>0);
+
+                delete cfg_cad_root;
+
+                // Pass the buffer to CDA.
+                COPYDATASTRUCT cds;
+                cds.dwData=IPC_GET_CURRENT_TRACK;
+                cds.cbData=result;
+                cds.lpData=buffer;
+
+                return SendMessage(_this->m_cda_window,WM_COPYDATA,reinterpret_cast<WPARAM>(hWnd),reinterpret_cast<LPARAM>(&cds));
+            }
+
+            case IPC_GET_DURATION: {
+                return static_cast<LONG>(pbc->playback_get_length());
+            }
+            case IPC_SET_POSITION: {
+                pbc->playback_seek(static_cast<double>(wParam));
+                return static_cast<LONG>(pbc->playback_get_position());
+            }
+            case IPC_IS_PLAYING: {
+                return pbc->is_playing();
+            }
+            case IPC_IS_PAUSED: {
+                return pbc->is_paused();
+            }
+            case IPC_GET_LIST_LENGTH: {
+                return plm->activeplaylist_get_item_count();
+            }
+            case IPC_SET_LIST_POS: {
+                // TODO: Find a way to make this work if playback is not the default action.
+                return plm->activeplaylist_execute_default_action(static_cast<t_size>(wParam));
+            }
+            case IPC_GET_LIST_ITEM: {
+                metadb_handle_ptr track;
+                if (!plm->activeplaylist_get_item_handle(track,static_cast<t_size>(wParam))) {
+                    return 0;
+                }
+
+                service_ptr_t<titleformat_object> script;
+
+                // See <http://wiki.hydrogenaudio.org/index.php?title=Foobar2000:Titleformat_Reference>.
+                pfc::string8 format=
+                    "[%artist%]"               "\t"
+                    "[%title%]"                "\t"
+                    "%length_seconds%"         "\t"
+                    "%path%"                   "\t"
+                    "$min($max(0,%rating%),5)"
+                ;
+
+                if (static_api_ptr_t<titleformat_compiler>()->compile(script,format)) {
+                    pbc->playback_format_title_ex(track,NULL,format,script,NULL,playback_control::display_level_titles);
+                }
+
+                // Copy the information to a buffer.
+                char buffer[4096];
+                ZeroMemory(buffer,sizeof(buffer));
+
+                int result=_snprintf_s(
+                    buffer,
+                    _TRUNCATE,
+                    "%s",
+                    format.get_ptr()
+                );
+                assert(result>0);
+
+                // Pass the buffer to CDA.
+                COPYDATASTRUCT cds;
+                cds.dwData=IPC_GET_LIST_ITEM;
+                cds.cbData=result;
+                cds.lpData=buffer;
+
+                return SendMessage(_this->m_cda_window,WM_COPYDATA,reinterpret_cast<WPARAM>(hWnd),reinterpret_cast<LPARAM>(&cds));
+            }
+            case IPC_SET_CALLBACK_HWND: {
+                _this->m_cda_window=reinterpret_cast<HWND>(wParam);
+                return 1;
+            }
+            case IPC_GET_LIST_POS: {
+                return static_cast<LONG>(plm->activeplaylist_get_focus_item());
+            }
+            case IPC_GET_POSITION: {
+                return static_cast<LONG>(pbc->playback_get_position());
+            }
+
+            case IPC_SHOW_PLAYER_WINDOW: {
+                static_api_ptr_t<ui_control> uic;
+                if (uic->is_visible()) {
+                    uic->hide();
+                }
+                else {
+                    uic->activate();
+                }
+                return 1;
+            }
+            case IPC_GET_PLAYER_STATE: {
+                if (pbc->is_paused()) {
+                    return HS_PAUSED;
+                }
+                if (pbc->is_playing()) {
+                    return HS_PLAYING;
+                }
+                return HS_STOPPED;
+            }
+
+            case IPC_SET_REPEAT: {
+                GUID guid=plm->playback_order_get_guid(plm->playback_order_get_active());
+
+                // Cycle through all "Repeat" modes and "Default".
+                if (guid==ORDER_REPEAT_PLAYLIST) {
+                    plm->playback_order_set_active(get_playback_order_index(plm,ORDER_REPEAT_TRACK));
+                }
+                else if (guid==ORDER_REPEAT_TRACK) {
+                    plm->playback_order_set_active(get_playback_order_index(plm,ORDER_DEFAULT));
+                }
+                else {
+                    plm->playback_order_set_active(get_playback_order_index(plm,ORDER_REPEAT_PLAYLIST));
+                }
+
+                return 1;
+            }
+            case IPC_GET_REPEAT: {
+                // Check if the current order mode is any of the "Repeat" modes.
+                GUID guid=plm->playback_order_get_guid(plm->playback_order_get_active());
+                return guid==ORDER_REPEAT_PLAYLIST || guid==ORDER_REPEAT_TRACK;
+            }
+
+            case IPC_CLOSE_PLAYER: {
+                standard_commands::main_exit();
+                return 1;
+            }
+
+            case IPC_SET_SHUFFLE: {
+                GUID guid=plm->playback_order_get_guid(plm->playback_order_get_active());
+
+                // Cycle through all "Shuffle" modes and "Default".
+                if (guid==ORDER_SHUFFLE_TRACKS) {
+                    plm->playback_order_set_active(get_playback_order_index(plm,ORDER_SHUFFLE_ALBUMS));
+                }
+                else if (guid==ORDER_SHUFFLE_ALBUMS) {
+                    plm->playback_order_set_active(get_playback_order_index(plm,ORDER_SHUFFLE_DIRECTORIES));
+                }
+                else if (guid==ORDER_SHUFFLE_DIRECTORIES) {
+                    plm->playback_order_set_active(get_playback_order_index(plm,ORDER_DEFAULT));
+                }
+                else {
+                    plm->playback_order_set_active(get_playback_order_index(plm,ORDER_SHUFFLE_TRACKS));
+                }
+
+                return 1;
+            }
+            case IPC_GET_SHUFFLE: {
+                // Check if the current order mode is any of the "Shuffle" modes.
+                GUID guid=plm->playback_order_get_guid(plm->playback_order_get_active());
+                return guid==ORDER_SHUFFLE_TRACKS || guid==ORDER_SHUFFLE_ALBUMS || guid==ORDER_SHUFFLE_DIRECTORIES;
+            }
+
+            // For compatibility with Helium.
+            case IPC_SET_RATING:
+
+            case IPC_RATING_CHANGED_NOTIFICATION: {
+                if (!cfg_write_rating) {
+                    return 0;
+                }
+
+                int rating=static_cast<int>(wParam);
+                if (rating<0) {
+                    rating=0;
+                }
+                else if (rating>5) {
+                    rating=5;
+                }
+                char const rating_str[]={'0'+static_cast<char>(rating),'\0'};
+
+                metadb_handle_ptr track;
+                if (pbc->get_now_playing(track)) {
+                    file_info_impl info;
+                    if (track->get_info(info)) {
+                        track->metadb_lock();
+                        if (rating>0) {
+                            info.meta_set("RATING",rating_str);
+                        }
+                        else {
+                            info.meta_remove_field("RATING");
+                        }
+                        static_api_ptr_t<metadb_io_v2>()->update_info_async_simple(
+                            pfc::list_single_ref_t<metadb_handle_ptr>(track),
+                            pfc::list_single_ref_t<file_info const*>(&info),
+                            core_api::get_main_window(),
+                            metadb_io_v2::op_flag_delay_ui,
+                            NULL
+                        );
+                        track->metadb_unlock();
+                    }
+                }
+
+                return 1;
+            }
+
+            case IPC_GET_CURRENT_LYRICS: {
+                metadb_handle_ptr track;
+                file_info_impl info;
+                if (!plm->activeplaylist_get_item_handle(track,static_cast<t_size>(wParam)) || !track->get_info(info)) {
+                    return 0;
+                }
+
+                // Copy the information to a buffer.
+                char buffer[16384];
+                ZeroMemory(buffer,sizeof(buffer));
+
+                char const* lyrics=info.meta_get("UNSYNCEDLYRICS",0);
+                t_size length=pfc::strcpy_utf8_truncate(lyrics,buffer,sizeof(buffer));
+
+                // Pass the buffer to CDA.
+                COPYDATASTRUCT cds;
+                cds.dwData=IPC_GET_CURRENT_LYRICS;
+                cds.cbData=length;
+                cds.lpData=buffer;
+
+                return SendMessage(_this->m_cda_window,WM_COPYDATA,reinterpret_cast<WPARAM>(hWnd),reinterpret_cast<LPARAM>(&cds));
+            }
+
+            default: {
+                return 0;
+            }
+        }
     }
 
     static ATOM s_atom;
