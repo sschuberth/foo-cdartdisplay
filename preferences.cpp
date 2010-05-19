@@ -36,7 +36,7 @@ static char const* get_registry_string(HKEY key,LPCTSTR subkey) {
         return NULL;
     }
 
-    static pfc::stringcvt::string_utf8_from_wide path_utf8;
+    pfc::stringcvt::string_utf8_from_wide path_utf8;
     path_utf8.convert(path);
     return path_utf8;
 }
@@ -106,7 +106,7 @@ class CDArtDisplayPreferences:public preferences_page
 
                 // Get the foobar2000 configuration strings and convert them to
                 // the OS' format.
-                static pfc::stringcvt::string_os_from_utf8 path2os;
+                pfc::stringcvt::string_os_from_utf8 path2os;
                 path2os.convert(cfg_cad_path);
 
                 uSendDlgItemMessage(hWnd,IDC_CAD_PATH,WM_SETTEXT,0,reinterpret_cast<LPARAM>(path2os.get_ptr()));
@@ -119,7 +119,7 @@ class CDArtDisplayPreferences:public preferences_page
             case WM_COMMAND: {
                 // Get all edit control string in the OS' format and convert them
                 // to UTF-8 for foobar2000.
-                static pfc::stringcvt::string_utf8_from_os path2utf8;
+                pfc::stringcvt::string_utf8_from_os path2utf8;
 
                 TCHAR path[MAX_PATH];
                 LRESULT result;

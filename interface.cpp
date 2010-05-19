@@ -96,11 +96,11 @@ class CDArtDisplayInterface:public initquit,public play_callback
 
                 // Get the foobar2000 configuration strings and convert them to the
                 // OS' format.
-                static pfc::stringcvt::string_os_from_utf8 path2os;
+                pfc::stringcvt::string_os_from_utf8 path2os;
                 path2os.convert(cmd_line);
 
-                static STARTUPINFO si={0};
-                static PROCESS_INFORMATION pi;
+                STARTUPINFO si={0};
+                PROCESS_INFORMATION pi;
 
                 BOOL result=CreateProcess(
                     NULL,
@@ -264,7 +264,7 @@ class CDArtDisplayInterface:public initquit,public play_callback
 
             PCOPYDATASTRUCT cds=reinterpret_cast<PCOPYDATASTRUCT>(lParam);
 
-            static char buffer[MAX_PATH];
+            char buffer[MAX_PATH];
             ZeroMemory(buffer,sizeof(buffer));
 
             if (cds->cbData>=sizeof(buffer)) {
@@ -384,7 +384,7 @@ class CDArtDisplayInterface:public initquit,public play_callback
                     }
 
                     // Copy the information to a buffer.
-                    static char buffer[4096];
+                    char buffer[4096];
                     ZeroMemory(buffer,sizeof(buffer));
 
                     pfc::string_directory* cfg_cad_root=new pfc::string_directory(cfg_cad_path);
@@ -402,7 +402,7 @@ class CDArtDisplayInterface:public initquit,public play_callback
                     delete cfg_cad_root;
 
                     // Pass the buffer to CDA.
-                    static COPYDATASTRUCT cds;
+                    COPYDATASTRUCT cds;
                     cds.dwData=IPC_GET_CURRENT_TRACK;
                     cds.cbData=result;
                     cds.lpData=buffer;
@@ -452,7 +452,7 @@ class CDArtDisplayInterface:public initquit,public play_callback
                     }
 
                     // Copy the information to a buffer.
-                    static char buffer[4096];
+                    char buffer[4096];
                     ZeroMemory(buffer,sizeof(buffer));
 
                     int result=_snprintf_s(
@@ -464,7 +464,7 @@ class CDArtDisplayInterface:public initquit,public play_callback
                     assert(result>0);
 
                     // Pass the buffer to CDA.
-                    static COPYDATASTRUCT cds;
+                    COPYDATASTRUCT cds;
                     cds.dwData=IPC_GET_LIST_ITEM;
                     cds.cbData=result;
                     cds.lpData=buffer;
@@ -607,14 +607,14 @@ class CDArtDisplayInterface:public initquit,public play_callback
                     }
 
                     // Copy the information to a buffer.
-                    static char buffer[16384];
+                    char buffer[16384];
                     ZeroMemory(buffer,sizeof(buffer));
 
                     char const* lyrics=info.meta_get("UNSYNCEDLYRICS",0);
                     t_size length=pfc::strcpy_utf8_truncate(lyrics,buffer,sizeof(buffer));
 
                     // Pass the buffer to CDA.
-                    static COPYDATASTRUCT cds;
+                    COPYDATASTRUCT cds;
                     cds.dwData=IPC_GET_CURRENT_LYRICS;
                     cds.cbData=length;
                     cds.lpData=buffer;
