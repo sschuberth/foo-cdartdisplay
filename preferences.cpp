@@ -64,7 +64,7 @@ class CDArtDisplayPreferences:public preferences_page
         return uCreateDialog(IDD_CONFIG,p_parent,WindowProc);
     }
 
-    const char * get_name() {
+    char const* get_name() {
         static char const* name="CD Art Display Interface";
         return name;
     }
@@ -90,7 +90,7 @@ class CDArtDisplayPreferences:public preferences_page
         cfg_write_rating=DEFAULT_WRITE_RATING;
     }
 
-    bool get_help_url(pfc::string_base & p_out) {
+    bool get_help_url(pfc::string_base& p_out) {
         p_out="http://www.cdartdisplay.com/forum/";
         return true;
     }

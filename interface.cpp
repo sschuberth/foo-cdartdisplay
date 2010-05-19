@@ -184,7 +184,7 @@ class CDArtDisplayInterface:public initquit,public play_callback
     #pragma warning(disable:4100)
 
     void on_playback_seek(double p_time) {}
-    void on_playback_dynamic_info(const file_info & p_info) {}
+    void on_playback_dynamic_info(file_info const& p_info) {}
     void on_playback_time(double p_time) {}
     void on_volume_change(float p_new_val) {}
 
@@ -247,7 +247,7 @@ class CDArtDisplayInterface:public initquit,public play_callback
 
     static LRESULT CALLBACK WindowProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam) {
         // Using a dynamic_cast here would be safer, but that requires RTTI support.
-        CDArtDisplayInterface *_this=reinterpret_cast<CDArtDisplayInterface*>(GetWindowLong(hWnd,GWL_USERDATA));
+        CDArtDisplayInterface* _this=reinterpret_cast<CDArtDisplayInterface*>(GetWindowLong(hWnd,GWL_USERDATA));
 
         if (uMsg==WM_CREATE) {
             LPVOID params=reinterpret_cast<CREATESTRUCT*>(lParam)->lpCreateParams;
