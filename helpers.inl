@@ -54,7 +54,7 @@ static t_size get_playback_order_index(static_api_ptr_t<playlist_manager>& plm,G
 
 static audio_sample scale_to_gain(double p_scale)
 {
-    return (audio_sample)(20.0*log10(p_scale));
+    return static_cast<audio_sample>(20.0*log10(p_scale));
 }
 
 static int round_to_even(double d)

@@ -246,13 +246,12 @@ class CDArtDisplayInterface:public initquit,public play_callback
   private:
 
     static LRESULT CALLBACK WindowProc(HWND hWnd,UINT uMsg,WPARAM wParam,LPARAM lParam) {
-        // Using a dynamic_cast here would be safer, but that requires RTTI support.
-        CDArtDisplayInterface* _this=reinterpret_cast<CDArtDisplayInterface*>(GetWindowLong(hWnd,GWL_USERDATA));
+        CDArtDisplayInterface* _this=reinterpret_cast<CDArtDisplayInterface*>(GetWindowLongPtr(hWnd,GWLP_USERDATA));
 
         if (uMsg==WM_CREATE) {
             LPVOID params=reinterpret_cast<CREATESTRUCT*>(lParam)->lpCreateParams;
             _this=static_cast<CDArtDisplayInterface*>(params);
-            SetWindowLongA(hWnd,GWL_USERDATA,(LONG)_this);
+            SetWindowLongPtr(hWnd,GWLP_USERDATA,reinterpret_cast<LONG_PTR>(_this));
         }
         else if (uMsg==WM_DESTROY) {
             SendMessage(_this->m_cda_window,WM_USER,0,IPC_SHUTDOWN_NOTIFICATION);
