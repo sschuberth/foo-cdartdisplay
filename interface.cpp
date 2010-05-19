@@ -267,17 +267,12 @@ class CDArtDisplayInterface:public initquit,public play_callback
         if (uMsg==WM_COPYDATA) {
             PCOPYDATASTRUCT cds=reinterpret_cast<PCOPYDATASTRUCT>(lParam);
 
-            char buffer[MAX_PATH];
-            ZeroMemory(buffer,sizeof(buffer));
-
-            if (cds->cbData>=sizeof(buffer)) {
-                cds->cbData=sizeof(buffer)-1;
-            }
-            strncpy_s(buffer,static_cast<char const*>(cds->lpData),cds->cbData);
+            char const* filename=static_cast<char const*>(cds->lpData);
+            assert(filename[cds->cbData-1]=='\0');
 
             static_api_ptr_t<playlist_manager> plm;
             if (cds->dwData==IPC_ADDFILE_PLAY_PLAYLIST) {
-                if (plm->activeplaylist_add_locations(pfc::list_single_ref_t<char const*>(buffer),false,_this->m_cda_window)) {
+                if (plm->activeplaylist_add_locations(pfc::list_single_ref_t<char const*>(filename),false,_this->m_cda_window)) {
                     // Newly added files come last in the playlist.
                     t_size item=plm->activeplaylist_get_item_count()-1;
 
@@ -287,7 +282,7 @@ class CDArtDisplayInterface:public initquit,public play_callback
                 return 0;
             }
             else if (cds->dwData==IPC_ADDFILE_QUEUE_PLAYLIST) {
-                return plm->activeplaylist_add_locations(pfc::list_single_ref_t<char const*>(buffer),false,_this->m_cda_window);
+                return plm->activeplaylist_add_locations(pfc::list_single_ref_t<char const*>(filename),false,_this->m_cda_window);
             }
         }
 
@@ -610,18 +605,14 @@ class CDArtDisplayInterface:public initquit,public play_callback
                     return 0;
                 }
 
-                // Copy the information to a buffer.
-                char buffer[16384];
-                ZeroMemory(buffer,sizeof(buffer));
-
                 char const* lyrics=info.meta_get("UNSYNCEDLYRICS",0);
-                t_size length=pfc::strcpy_utf8_truncate(lyrics,buffer,sizeof(buffer));
+                t_size length=pfc::strlen_utf8(lyrics);
 
                 // Pass the buffer to CDA.
                 COPYDATASTRUCT cds;
                 cds.dwData=IPC_GET_CURRENT_LYRICS;
                 cds.cbData=length;
-                cds.lpData=buffer;
+                cds.lpData=const_cast<char*>(lyrics);
 
                 return SendMessage(_this->m_cda_window,WM_COPYDATA,reinterpret_cast<WPARAM>(hWnd),reinterpret_cast<LPARAM>(&cds));
             }
