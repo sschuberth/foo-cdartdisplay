@@ -39,6 +39,11 @@ class CDArtDisplayInterface:public initquit,public play_callback
 {
   public:
 
+    CDArtDisplayInterface()
+    :   m_dummy_window(NULL)
+    ,   m_cda_window(NULL)
+    {}
+
     void on_init() {
         if (!s_atom) {
             // Register a minimal window class.
@@ -142,6 +147,9 @@ class CDArtDisplayInterface:public initquit,public play_callback
                             MB_OK|MB_ICONWARNING
                         );
                     }
+
+                    CloseHandle(pi.hProcess);
+                    CloseHandle(pi.hThread);
                 }
             }
         }
@@ -167,7 +175,7 @@ class CDArtDisplayInterface:public initquit,public play_callback
         }
 
         if (--s_instances<=0) {
-            if (!UnregisterClass(MAKEINTATOM(s_atom),NULL)) {
+            if (!UnregisterClass(MAKEINTATOM(s_atom),core_api::get_my_instance())) {
                 MessageBox(core_api::get_main_window(),_T("Unable to unregister the window class."),FOO_COMP_FILE,MB_OK|MB_ICONERROR);
                 return;
             }
