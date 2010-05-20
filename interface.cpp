@@ -45,6 +45,14 @@ class CDArtDisplayInterface:public initquit,public play_callback
     {}
 
     void on_init() {
+        // Check for SSE2 instructions (due to round_to_even() and /arch:SSE2).
+        int info[4];
+        __cpuid(info,0x00000001);
+        if (info[3]&(1<<26)==0) {
+            MessageBox(core_api::get_main_window(),_T("A CPU with SSE2 instructions is required."),FOO_COMP_FILE,MB_OK|MB_ICONERROR);
+            return;
+        }
+
         if (!s_atom) {
             // Register a minimal window class.
             WNDCLASS cls;
