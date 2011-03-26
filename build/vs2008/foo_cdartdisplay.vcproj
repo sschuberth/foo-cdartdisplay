@@ -18,7 +18,7 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="D:\Program Files (x86)\foobar2000\components"
+			OutputDirectory="C:\Program Files (x86)\foobar2000\components"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="2"
 			CharacterSet="1"
@@ -26,7 +26,7 @@
 			<Tool
 				Name="VCPreBuildEventTool"
 				Description="Retrieving SVN working copy version ..."
-				CommandLine="SubWCRev.exe . component.h.template component.h"
+				CommandLine="SubWCRev.exe ..\.. ..\..\component.h.template ..\..\component.h"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -43,7 +43,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="D:\Development\Libraries\foobar2000 SDK"
+				AdditionalIncludeDirectories="C:\Development\Libraries\foobar2000 SDK"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -67,7 +67,7 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="shared.lib advapi32.lib shlwapi.lib"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="D:\Development\Libraries\foobar2000 SDK\foobar2000\shared"
+				AdditionalLibraryDirectories="C:\Development\Libraries\foobar2000 SDK\foobar2000\shared"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				RandomizedBaseAddress="1"
@@ -98,7 +98,7 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="D:\Program Files (x86)\foobar2000\components"
+			OutputDirectory="C:\Program Files (x86)\foobar2000\components"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="2"
 			CharacterSet="1"
@@ -107,7 +107,7 @@
 			<Tool
 				Name="VCPreBuildEventTool"
 				Description="Retrieving SVN working copy version ..."
-				CommandLine="SubWCRev.exe . component.h.template component.h"
+				CommandLine="SubWCRev.exe ..\..\ ..\..\component.h.template ..\..\component.h"
 			/>
 			<Tool
 				Name="VCCustomBuildTool"
@@ -123,7 +123,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="D:\Development\Libraries\foobar2000 SDK"
+				AdditionalIncludeDirectories="C:\Development\Libraries\foobar2000 SDK"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL"
 				StringPooling="true"
 				RuntimeLibrary="0"
@@ -148,7 +148,7 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="shared.lib advapi32.lib shlwapi.lib"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="D:\Development\Libraries\foobar2000 SDK\foobar2000\shared"
+				AdditionalLibraryDirectories="C:\Development\Libraries\foobar2000 SDK\foobar2000\shared"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				OptimizeReferences="2"
@@ -184,38 +184,38 @@
 	</References>
 	<Files>
 		<File
-			RelativePath=".\component.h"
+			RelativePath="..\..\component.h"
 			>
 		</File>
 		<File
-			RelativePath=".\component.h.template"
+			RelativePath="..\..\component.h.template"
 			>
 		</File>
 		<File
-			RelativePath=".\helpers.inl"
+			RelativePath="..\..\helpers.inl"
 			>
 		</File>
 		<File
-			RelativePath=".\interface.cpp"
+			RelativePath="..\..\interface.cpp"
 			>
 		</File>
 		<File
-			RelativePath=".\preferences.cpp"
+			RelativePath="..\..\preferences.cpp"
 			>
 		</File>
 		<File
-			RelativePath=".\preferences.rc"
+			RelativePath="..\..\preferences.rc"
 			>
 		</File>
 		<File
-			RelativePath=".\resource.h"
+			RelativePath="..\..\resource.h"
 			>
 		</File>
 	</Files>
 	<Globals>
 		<Global
 			Name="RESOURCE_FILE"
-			Value="preferences.rc"
+			Value="..\..\preferences.rc"
 		/>
 	</Globals>
 </VisualStudioProject>
