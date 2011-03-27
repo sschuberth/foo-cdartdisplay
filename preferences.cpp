@@ -18,6 +18,7 @@
  */
 
 #include <shlobj.h>
+#include <shlwapi.h>
 
 #include "component.h"
 #include "resource.h"
@@ -25,15 +26,18 @@
 #include <foobar2000/helpers/win32_dialog.h>
 
 #define DEFAULT_CAD_START     true
-#define DEFAULT_CAD_PATH      get_registry_string(HKEY_CURRENT_USER,_T("Software\\CD Art Display"))
+#define DEFAULT_CAD_PATH      get_cad_path()
 #define DEFAULT_WRITE_RATING  false
 
-// Returns a registry key's default value in UTF-8.
-static char const* get_registry_string(HKEY key,LPCTSTR subkey) {
+// Returns a default path to CAD in UTF-8.
+static char const* get_cad_path() {
     TCHAR path[MAX_PATH];
     LONG size=sizeof(path);
-    if (RegQueryValue(key,subkey,path,&size)!=ERROR_SUCCESS) {
-        return NULL;
+    if (RegQueryValue(HKEY_CURRENT_USER,_T("Software\\CD Art Display"),path,&size)!=ERROR_SUCCESS) {
+        if (SHGetFolderPath(NULL,CSIDL_PROGRAM_FILES,NULL,SHGFP_TYPE_CURRENT,path)!=S_OK) {
+            _tcscpy_s(path,_T("C:\\Program Files"));
+        }
+        PathAppend(path,_T("CD Art Display\\CAD.exe"));
     }
 
     pfc::stringcvt::string_utf8_from_wide path_utf8;
