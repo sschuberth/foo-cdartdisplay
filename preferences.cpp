@@ -31,7 +31,7 @@
 // Returns a registry key's default value in UTF-8.
 static char const* get_registry_string(HKEY key,LPCTSTR subkey) {
     TCHAR path[MAX_PATH];
-    LONG size=MAX_PATH;
+    LONG size=sizeof(path);
     if (RegQueryValue(key,subkey,path,&size)!=ERROR_SUCCESS) {
         return NULL;
     }
