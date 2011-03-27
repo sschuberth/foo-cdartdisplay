@@ -48,7 +48,7 @@ class CDArtDisplayInterface:public initquit,public play_callback
         // Check for SSE2 instructions (due to round_to_even() and /arch:SSE2).
         int info[4];
         __cpuid(info,0x00000001);
-        if (info[3]&(1<<26)==0) {
+        if ((info[3]&(1<<26))==0) {
             MessageBox(core_api::get_main_window(),_T("A CPU with SSE2 instructions is required."),FOO_COMP_FILE,MB_OK|MB_ICONERROR);
             return;
         }
@@ -351,7 +351,7 @@ class CDArtDisplayInterface:public initquit,public play_callback
                 // http://www.hydrogenaudio.org/forums/index.php?showtopic=47858
                 // NOTE: foobar2000 seems to use a factor of 3.0 here, but 2.5 maps
                 // more nicely 1 to -100.
-                audio_sample gain=scale_to_gain(scale/100.0)*2.5;
+                audio_sample gain=scale_to_gain(scale/100.0)*static_cast<audio_sample>(2.5);
                 pbc->set_volume(static_cast<float>(gain));
                 return 1;
             }
