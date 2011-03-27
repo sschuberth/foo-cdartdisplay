@@ -40,7 +40,7 @@ static char const* get_cad_path() {
         PathAppend(path,_T("CD Art Display\\CAD.exe"));
     }
 
-    pfc::stringcvt::string_utf8_from_wide path_utf8;
+    static pfc::stringcvt::string_utf8_from_wide path_utf8;
     path_utf8.convert(path);
     return path_utf8;
 }
