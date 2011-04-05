@@ -26,7 +26,7 @@
 #pragma warning(pop)
 
 #define FOO_COMP_NAME     "CD Art Display Interface"
-#define FOO_COMP_VERSION  "2.0.1"   // Major and minor number specify the targetted CAD version number.
+#define FOO_COMP_VERSION  "3.0"     // Major and minor number specify the targetted CAD version number.
 #define FOO_COMP_STATE    "release"
 #define FOO_COMP_RELEASE  "$WCREV$" // This specifies highest committed revision number.
 
