@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2010  Sebastian Schuberth <sschuberth_AT_gmail_DOT_com>
+ * Copyright (C) 2007-2011  Sebastian Schuberth <sschuberth_AT_gmail_DOT_com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -27,7 +27,7 @@ DECLARE_COMPONENT_VERSION(
     FOO_COMP_NAME,
     FOO_COMP_VERSION " " FOO_COMP_STATE " " FOO_COMP_RELEASE,
     "This is a message interface component for CD Art Display:\nhttp://www.cdartdisplay.com/\n\n"
-    "Compiled on " __DATE__ "\nCopyright (C) 2007-2010  Sebastian Schuberth <sschuberth_AT_gmail_DOT_com>\n\n"
+    "Compiled on " __DATE__ "\nCopyright (C) 2007-2011  Sebastian Schuberth <sschuberth_AT_gmail_DOT_com>\n\n"
     "The source code is available under LGPL at:\nhttp://foo-cdartdisplay.googlecode.com/"
 );
 
