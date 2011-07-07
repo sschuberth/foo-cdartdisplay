@@ -57,7 +57,12 @@ static audio_sample scale_to_gain(double p_scale)
     return static_cast<audio_sample>(20.0*log10(p_scale));
 }
 
-static int round_to_even(double d)
+static int round_to_even(float f)
 {
-    return _mm_cvtsd_si32(_mm_load_sd(&d));
+    int i;
+    __asm {
+        fld f
+        fistp i
+    }
+    return i;
 }
