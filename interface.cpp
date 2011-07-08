@@ -614,12 +614,14 @@ class CDArtDisplayInterface:public initquit,public play_callback
                 }
 
                 char const* lyrics=info.meta_get("UNSYNCEDLYRICS",0);
-                t_size length=pfc::strlen_utf8(lyrics);
+                if (!lyrics) {
+                    return 0;
+                }
 
                 // Pass the buffer to CDA.
                 COPYDATASTRUCT cds;
                 cds.dwData=IPC_GET_CURRENT_LYRICS;
-                cds.cbData=length;
+                cds.cbData=pfc::strlen_utf8(lyrics);
                 cds.lpData=const_cast<char*>(lyrics);
 
                 return SendMessage(_this->m_cda_window,WM_COPYDATA,reinterpret_cast<WPARAM>(hWnd),reinterpret_cast<LPARAM>(&cds));
