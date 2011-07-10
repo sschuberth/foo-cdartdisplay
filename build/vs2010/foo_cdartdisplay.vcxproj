@@ -104,6 +104,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\..\component.h" />
+    <ClInclude Include="..\..\foo_uie_wsh_panel_mod\helpers.h" />
     <ClInclude Include="..\..\resource.h" />
   </ItemGroup>
   <ItemGroup>
@@ -111,6 +112,7 @@
     <None Include="..\..\helpers.inl" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\foo_uie_wsh_panel_mod\helpers.cpp" />
     <ClCompile Include="..\..\interface.cpp" />
     <ClCompile Include="..\..\preferences.cpp" />
   </ItemGroup>

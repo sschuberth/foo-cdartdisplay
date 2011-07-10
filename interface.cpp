@@ -18,6 +18,7 @@
  */
 
 #include "component.h"
+#include "foo_uie_wsh_panel_mod/helpers.h"
 
 extern cfg_bool cfg_cad_start;
 extern cfg_string cfg_cad_path;
@@ -230,6 +231,8 @@ class CDArtDisplayInterface:public initquit,public play_callback
         service_ptr_t<titleformat_object> script;
 
         // See <http://wiki.hydrogenaudio.org/index.php?title=Foobar2000:Titleformat_Reference>.
+        // Note that if foo_playcount >= 3.0 is used, the rating will not fall back
+        // to tag contents if there is no rating information present in the database.
         pfc::string8 format=
             "$min($max(0,%rating%),5)"
         ;
@@ -364,6 +367,8 @@ class CDArtDisplayInterface:public initquit,public play_callback
                 service_ptr_t<titleformat_object> script;
 
                 // See <http://wiki.hydrogenaudio.org/index.php?title=Foobar2000:Titleformat_Reference>.
+                // Note that if foo_playcount >= 3.0 is used, the rating will not fall back
+                // to tag contents if there is no rating information present in the database.
                 pfc::string8 format1=
                     "[%title%]"                "\t"
                     "[%artist%]"               "\t"
@@ -449,6 +454,8 @@ class CDArtDisplayInterface:public initquit,public play_callback
                 service_ptr_t<titleformat_object> script;
 
                 // See <http://wiki.hydrogenaudio.org/index.php?title=Foobar2000:Titleformat_Reference>.
+                // Note that if foo_playcount >= 3.0 is used, the rating will not fall back
+                // to tag contents if there is no rating information present in the database.
                 pfc::string8 format=
                     "[%artist%]"               "\t"
                     "[%title%]"                "\t"
@@ -568,10 +575,6 @@ class CDArtDisplayInterface:public initquit,public play_callback
             case IPC_SET_RATING:
 
             case IPC_RATING_CHANGED_NOTIFICATION: {
-                if (!cfg_write_rating) {
-                    return 0;
-                }
-
                 int rating=static_cast<int>(wParam);
                 if (rating<0) {
                     rating=0;
@@ -579,8 +582,22 @@ class CDArtDisplayInterface:public initquit,public play_callback
                 else if (rating>5) {
                     rating=5;
                 }
-                char const rating_str[]={'0'+static_cast<char>(rating),'\0'};
 
+                // Try to execute the foo_playcount rating menu entry.
+                char rating_menu_str[]="Playback Statistics/Rating/<not set>";
+                char* rating_str=rating_menu_str+strlen(rating_menu_str)-strlen("<not set>");
+                if (rating>0) {
+                    rating_str[0]='0'+static_cast<char>(rating);
+                    rating_str[1]='\0';
+                }
+
+                bool result=helpers::execute_context_command_by_name(rating_menu_str,metadb_handle_list());
+
+                if (result && !cfg_write_rating) {
+                    return 0;
+                }
+
+                // Explicitly write the rating to the file tag.
                 metadb_handle_ptr track;
                 if (pbc->get_now_playing(track)) {
                     file_info_impl info;
