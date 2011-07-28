@@ -65,10 +65,10 @@
       <AdditionalDependencies>shared.lib;advapi32.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PreBuildEvent>
-      <Command>SubWCRev.exe ..\.. ..\..\component.h.template ..\..\component.h</Command>
+      <Command>..\..\version.cmd</Command>
     </PreBuildEvent>
     <PreBuildEvent>
-      <Message>Retrieving SVN working copy version ...</Message>
+      <Message>Generating version information ...</Message>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -96,10 +96,10 @@
       <AdditionalDependencies>shared.lib;advapi32.lib;shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PreBuildEvent>
-      <Command>SubWCRev.exe ..\.. ..\..\component.h.template ..\..\component.h</Command>
+      <Command>..\..\version.cmd</Command>
     </PreBuildEvent>
     <PreBuildEvent>
-      <Message>Retrieving SVN working copy version ...</Message>
+      <Message>Generating version information ...</Message>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -108,8 +108,8 @@
     <ClInclude Include="..\..\resource.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\component.h.template" />
     <None Include="..\..\helpers.inl" />
+    <None Include="..\..\version.inl" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\foo_uie_wsh_panel_mod\helpers.cpp" />

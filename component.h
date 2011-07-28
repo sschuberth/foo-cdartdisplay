@@ -25,10 +25,7 @@
 #include <foobar2000/SDK/foobar2000.h>
 #pragma warning(pop)
 
-#define FOO_COMP_NAME     "CD Art Display Interface"
-#define FOO_COMP_VERSION  "3.0"     // Major and minor number specify the targetted CAD version number.
-#define FOO_COMP_STATE    "release"
-#define FOO_COMP_RELEASE  "$WCREV$" // This specifies highest committed revision number.
+#include "version.inl"
 
 #define FOO_COMP_FILE     _T("foo_cdartdisplay")
 #define FOO_COMP_CLASS    _T("foo_cdartdisplay_class")
