@@ -1,6 +1,6 @@
 @echo off
 
-setlocal
+setlocal enabledelayedexpansion
 
 rem Read the msysGit installation path from the Registry.
 :REG_QUERY
@@ -18,14 +18,32 @@ if "%GIT%"=="" (
 )
 
 pushd "%~dp0"
-for /f "delims=" %%l in ('"%GIT%\bin\git.exe" describe --dirty --tags') do (
+for /f "delims=" %%l in ('"%GIT%\bin\git.exe" describe --tags') do (
+    echo Description: %%l
+
+    for /f "delims=- tokens=2" %%t in ("%%l") do (
+        set VERSION=%%t
+    )
+    echo Version: !VERSION!
+
+    for /f "delims=- tokens=4*" %%t in ("%%l") do (
+        set REVISION=%%t
+        set INFO=%%u
+    )
+    echo Revision: !REVISION!
+    echo Info: !INFO!
+
     echo // The component's full name.>version.inl
     echo #define FOO_COMP_NAME    "CD Art Display Interface">>version.inl
+
     echo // Major and minor CAD version number to target at.>>version.inl
-    echo #define FOO_COMP_VERSION "3.0">>version.inl
-    echo // Additional information that identifies the build.>>version.inl
-    for /f "delims=- tokens=5" %%t in ("%%l") do (
-        echo #define FOO_COMP_BUILD   "%%t">>version.inl
+    echo #define FOO_COMP_VERSION "!VERSION!">>version.inl
+
+    if not "!INFO!"=="" (
+        set REVISION=!REVISION!.!INFO!
     )
+
+    echo // Additional information that identifies the build.>>version.inl
+    echo #define FOO_COMP_BUILD   "!REVISION!">>version.inl
 )
 popd
