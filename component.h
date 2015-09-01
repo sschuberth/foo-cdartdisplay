@@ -25,7 +25,7 @@
 #include <foobar2000/SDK/foobar2000.h>
 #pragma warning(pop)
 
-#include "version.inl"
+#include "./version.inl"
 
 #define FOO_COMP_FILE     _T("foo_cdartdisplay")
 #define FOO_COMP_CLASS    _T("foo_cdartdisplay_class")
