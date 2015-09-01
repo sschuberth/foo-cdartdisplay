@@ -3,19 +3,27 @@
 setlocal enabledelayedexpansion
 
 rem Read the Git for Windows installation path from the Registry.
+set REG=64
 :REG_QUERY
-for /f "skip=2 delims=: tokens=1*" %%a in ('reg query HKLM\SOFTWARE%WOW%\Microsoft\Windows\CurrentVersion\Uninstall\Git_is1 /v InstallLocation 2^> nul') do (
+for /f "skip=2 delims=: tokens=1*" %%a in ('reg query HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Git_is1 /v InstallLocation /reg:%REG% 2^> nul') do (
     for /f "tokens=3" %%i in ("%%a") do (
         set GIT=%%i:%%b
     )
 )
 if "%GIT%"=="" (
-    if "%WOW%"=="" (
+    if "%REG%"=="64" (
         rem Assume we are on 64-bit Windows, so explicitly read the 32-bit Registry.
-        set WOW=\Wow6432Node
+        set WOW=32
         goto REG_QUERY
     )
 )
+
+if "%GIT%"=="" (
+    echo Error: No installation of Git for Windows found.
+    exit /b 1
+)
+
+echo Using Git at %GIT%...
 
 pushd "%~dp0"
 for /f "delims=" %%l in ('"%GIT%\bin\git.exe" describe --tags') do (
