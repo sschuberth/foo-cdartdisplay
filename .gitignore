@@ -1,10 +1,2 @@
-Debug/
-Release/
-ipch/
-*.ncb
-*.suo
-*.user
-*.aps
-*.sdf
-*.opensdf
+/components/
 version.inl
